@@ -18,7 +18,6 @@ class Shelter(Base):
     zipCode = Column(String(10))
     website = Column(String)
 
-
 class Puppy(Base):
     __tablename__ = 'puppy'
     id = Column(Integer, primary_key=True)
@@ -30,13 +29,12 @@ class Puppy(Base):
     shelter_id = Column(Integer, ForeignKey('shelter.id'))
     shelter = relationship(Shelter)
 
-
+# Create an engine that stores data in the local directory's
+# puppyshelter_sqlite.db file.
 engine = create_engine('sqlite:///puppyshelter_sqlite.db')
-
 
 Base.metadata.create_all(engine)
 
 print "=============================================="
 print "Puppies class file loaded"
 print "=============================================="
-print "Puppypopulator file being processed"
