@@ -31,3 +31,5 @@ engine = create_engine('sqlite:///restaurantmenu.db')
 
 
 Base.metadata.create_all(engine)
+
+print "database is setup - Lesson 1"
