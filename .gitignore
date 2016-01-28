@@ -4,6 +4,6 @@ backup
 .idea
 .git
 .vagrant
-/Problem_Set_1/puppyshelter.db
+/Problem_Set_1/puppyshelter_sqlite.db
 pg_config.sh
 VAgrantfile

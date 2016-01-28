@@ -31,7 +31,7 @@ class Puppy(Base):
     shelter = relationship(Shelter)
 
 
-engine = create_engine('sqlite:///puppyshelter.db')
+engine = create_engine('sqlite:///puppyshelter_sqlite.db')
 
 
 Base.metadata.create_all(engine)
