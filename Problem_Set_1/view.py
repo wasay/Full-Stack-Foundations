@@ -1,12 +1,10 @@
 import os
 
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from decimal import *
+import decimal as import_decimal
+from decimal import Decimal
 
 from puppies import Shelter, Base, Puppy
 
@@ -14,8 +12,11 @@ import datetime as import_datetime
 from datetime import date
 from datetime import datetime
 
-import puppyadd
-# import puppypopulator
+# ==============================================
+# ##    RUN ONLY ONCE ###
+# ==============================================
+# import puppyadd
+#import puppypopulator
 
 engine = create_engine('sqlite:///puppyshelter.db')
 # Bind the engine to the metadata of the Base class so that the
@@ -43,8 +44,9 @@ print "results in ascending alphabetical order"
 print "=============================================="
 os.system("pause")
 
-for name in session.query(Puppy.name).group_by(Puppy.name).order_by(Puppy.name):
-    print (name)
+puppies_list = session.query(Puppy.name)
+for row in puppies_list.order_by(Puppy.name):
+    print (row.name)
 
 print "=============================================="
 print "2. Query all of the puppies that are less than "
@@ -54,11 +56,11 @@ os.system("pause")
 
 today = date.today()
 six_months = today - import_datetime.timedelta(today.month - 6)
-puppies_list = session.query(Puppy.name, Puppy.dateOfBirth)
-six_months_old_puppies = puppies_list.filter(Puppy.dateOfBirth < six_months)
-for name, dateOfBirth in six_months_old_puppies.order_by(Puppy.dateOfBirth):
-    #date_of_birth_combine = datetime.combine(dateOfBirth, datetime.min.time())
-    #date_of_birth =  import_datetime.timedelta(today.month - date_of_birth_combine.month)
+
+puppies_list = session.query(Puppy.name, Puppy.dateOfBirth).\
+                       filter(Puppy.dateOfBirth < six_months).\
+                       order_by(Puppy.dateOfBirth)
+for name, dateOfBirth in puppies_list:
     print (name)
 
 print "=============================================="
@@ -66,18 +68,22 @@ print "3. Query all puppies by ascending weight"
 print "=============================================="
 os.system("pause")
 
-for puppy in session.query(Puppy).order_by(Puppy.weight):
-    print (puppy.name, puppy.weight.quantize(Decimal('0.01')),
-           puppy.shelter_id)
+puppies_list = session.query(Puppy.name, Puppy.weight).\
+                       order_by(Puppy.weight)
+for name, weight in puppies_list:
+    print (name, int(weight))
 
 print "=============================================="
 print "4. Query all puppies grouped by the shelter in which they are staying"
 print "=============================================="
 os.system("pause")
-pets_shelter = session.query(Puppy, Shelter)
-pets_shelter_group = pets_shelter.group_by(Shelter.id, Puppy.id)
-for pet in pets_shelter_group.order_by(Shelter.name, Puppy.name):
-    print (pet.Shelter.name, pet.Puppy.name)
+
+puppies_list = session.query(Puppy.name, Shelter.name).\
+                       filter(Puppy.shelter_id == Shelter.id).\
+                       group_by(Shelter.name, Puppy.name).\
+                       order_by(Shelter.name, Puppy.name)
+for shelter_name, puppy_name in puppies_list:
+    print (shelter_name, puppy_name)
 
 print "=============================================="
 print "View End"
