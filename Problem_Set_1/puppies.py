@@ -30,8 +30,8 @@ class Puppy(Base):
     shelter = relationship(Shelter)
 
 # Create an engine that stores data in the local directory's
-# puppyshelter_sqlite.db file.
-engine = create_engine('sqlite:///puppyshelter_sqlite.db')
+# puppyshelter.db file.
+engine = create_engine('sqlite:///puppyshelter.db')
 
 Base.metadata.create_all(engine)
 
