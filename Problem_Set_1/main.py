@@ -33,7 +33,7 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 print "=============================================="
-print "View Start"
+print "Start"
 print "=============================================="
 
 print "=============================================="
@@ -84,5 +84,5 @@ for shelter_name, puppy_name in puppies_list:
     print (shelter_name, puppy_name)
 
 print "=============================================="
-print "View End"
+print "End"
 print "=============================================="

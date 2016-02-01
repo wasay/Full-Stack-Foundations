@@ -4,6 +4,11 @@ from sqlalchemy import *
 
 meta = MetaData()
 
+adoptors = Table('adoptors', meta,
+    Column('id', INTEGER, primary_key=True, nullable=False),
+    Column('name', VARCHAR(length=250), nullable=False),
+)
+
 puppy = Table('puppy', meta,
     Column('id', INTEGER, primary_key=True, nullable=False),
     Column('name', VARCHAR(length=250), nullable=False),
