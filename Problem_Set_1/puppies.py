@@ -17,6 +17,8 @@ class Shelter(Base):
     state = Column(String(20))
     zipCode = Column(String(10))
     website = Column(String)
+    current_occupancy = Column(Integer, default=0)
+    maximum_capacity = Column(Integer, default=0)
 
 class Puppy(Base):
     __tablename__ = 'puppy'
@@ -30,6 +32,19 @@ class Puppy(Base):
     special_needs = Column(String)
     shelter_id = Column(Integer, ForeignKey('shelter.id'))
     shelter = relationship(Shelter)
+
+class Adoptors(Base):
+    __tablename__ = 'adoptors'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(250), nullable=False)
+
+class PuppyAdoptors(Base):
+    __tablename__ = 'puppy_adoptors'
+    id = Column(Integer, primary_key=True)
+    puppy_id = Column(Integer, ForeignKey('puppy.id'))
+    puppy = relationship(Puppy)
+    adoptor_id = Column(Integer, ForeignKey('adoptor.id'))
+    adoptor = relationship(Adoptors)
 
 # Create an engine that stores data in the local directory's
 # puppyshelter.db file.

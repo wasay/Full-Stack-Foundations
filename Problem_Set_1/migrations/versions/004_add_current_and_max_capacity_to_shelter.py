@@ -8,11 +8,11 @@ def upgrade(migrate_engine):
     meta = MetaData(bind=migrate_engine)
     shelter = Table('shelter', meta, autoload=True)
 
-    col1 = Column('current_occupancy', Integer)
-    col1.create(shelter)
+    col1 = Column('current_occupancy', Integer, default=0)
+    col1.create(shelter, populate_default=True)
 
-    col2 = Column('maximum_capacity', Integer)
-    col2.create(shelter)
+    col2 = Column('maximum_capacity', Integer, default=0)
+    col2.create(shelter, populate_default=True)
     pass
 
 
