@@ -34,6 +34,7 @@ session = DBSession()
 
 try:
 # get all puppies
+session.query(User).filter(User.name.like('%ed')).count()
 # get all shelters
 
 # devide puppies by shelter

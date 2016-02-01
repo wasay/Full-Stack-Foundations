@@ -4,13 +4,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-import decimal as import_decimal
-from decimal import Decimal
-
 Base = declarative_base()
 
-from puppies import Shelter, Base, Puppy
+from puppies import Base, Shelter, Puppy
 
+import decimal as import_decimal
+from decimal import Decimal
 import datetime as import_datetime
 from datetime import date
 from datetime import datetime
