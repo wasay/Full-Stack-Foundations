@@ -32,10 +32,15 @@ DBSession = sessionmaker(bind=engine)
 # session.rollback()
 session = DBSession()
 
+try:
 # get all puppies
 # get all shelters
 
 # devide puppies by shelter
 # round the number
 # update puppy_shelter table to update puppy assignments
+
+except:
+   session.rollback()
+   raise
 

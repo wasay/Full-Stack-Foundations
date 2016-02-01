@@ -31,8 +31,13 @@ DBSession = sessionmaker(bind=engine)
 # session.rollback()
 session = DBSession()
 
+try:
 #check if requested shelter has capacity for one
 # if no, check if any shelter has capacity for one
 	# if no, prompt user to create a new shelter
 	# if yes, add puppy to shelter
 # if yes, add puppy to shelter
+
+except:
+   session.rollback()
+   raise
