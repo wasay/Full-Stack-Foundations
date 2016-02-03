@@ -4,10 +4,6 @@ from sqlalchemy.orm import sessionmaker
 from puppies import Shelter, Base, Puppy
 # from flask.ext.sqlalchemy import SQLAlchemy
 
-from random import randint
-import datetime
-import random
-
 
 engine = create_engine('sqlite:///puppyshelter.db')
 

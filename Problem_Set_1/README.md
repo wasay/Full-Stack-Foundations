@@ -14,12 +14,18 @@ python migrations/manage.py test
 python migrations/manage.py upgrade
 python main.py
 
-# populate additional data
-python add_data.py
+# populate puppy adoptors
+python data_add_adoptors.py
+python main.py
+
+# update shelter capacity numbers
+python data_reset_shelter_capacity.py
 python main.py
 
 # check-in puppy into a shelter
-python checkin.py <puppy_name> <shelter_name>
+# python checkin.py <function> <puppy_name> <shelter_name>
+python checkin.py checkin Zoey "Oakland Animal Services"
+ 
 python main.py
 
 # transfer puppies evenly
