@@ -17,12 +17,14 @@ session = DBSession()
 
 try:
     puppies_list = session.query(Puppy.id, Puppy.name).order_by(Puppy.name)
-    for i, row in enumerate(puppies_list):
+    i = 1
+    while (i < 9):
         print i
-        print row
-        puppy_adopt = PuppyAdoptors(id=None, puppy_id=row.id, adoptor_id=randint(0, 8))
+        print puppies_list[i]
+        puppy_adopt = PuppyAdoptors(id=None, puppy_id=puppies_list[i].id, adoptor_id=randint(1, 8))
         session.add(puppy_adopt)
         session.commit()
+        i += 1
 except:
    session.rollback()
    raise

@@ -43,8 +43,8 @@ class PuppyAdoptors(Base):
     id = Column(Integer, primary_key=True)
     puppy_id = Column(Integer, ForeignKey('puppy.id'))
     puppy = relationship(Puppy)
-    adoptor_id = Column(Integer, ForeignKey('adoptor.id'))
-    adoptor = relationship(Adoptors)
+    adoptor_id = Column(Integer, ForeignKey('adoptors.id'))
+    adoptors = relationship(Adoptors)
 
 class ShelterPuppies(Base):
     __tablename__ = 'shelter_puppies'
