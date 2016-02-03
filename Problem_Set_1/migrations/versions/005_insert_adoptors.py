@@ -9,13 +9,10 @@ male_names = ["Noah A", "Liam B", "Mason C", "Jacob C"]
 female_names = ['Emma A', 'Olivia B', 'Sophia C', 'Isabella D']
 
 Base = declarative_base()
-engine = create_engine('sqlite:///puppyshelter.db')
-meta = MetaData(bind=engine)
-DBSession = sessionmaker(bind=engine)
-# session.rollback()
-session = DBSession()
 
 class Adoptors(Base):
+    engine = create_engine('sqlite:///puppyshelter.db')
+    meta = MetaData(bind=engine)
     __table__ = Table('adoptors', meta, autoload=True)
 
 def upgrade(migrate_engine):
@@ -24,6 +21,9 @@ def upgrade(migrate_engine):
     meta = MetaData(bind=migrate_engine)
 
     adoptors = Table('adoptors', meta, autoload=True)
+
+    DBSession = sessionmaker(bind=migrate_engine)
+    session = DBSession()
 
     for i, x in enumerate(male_names):
 	  adoptor = Adoptors(id=None, name=x)
@@ -40,13 +40,21 @@ def upgrade(migrate_engine):
 def downgrade(migrate_engine):
     # Operations to reverse the above upgrade go here.
     meta = MetaData(bind=migrate_engine)
+
     adoptors = Table('adoptors', meta, autoload=True)
 
+    DBSession = sessionmaker(bind=migrate_engine)
+    session = DBSession()
+
     for i, x in enumerate(male_names):
-        adoptor = adoptors.filter(name=x)
-        adoptors.drop(adoptor)
+        session.query(Adoptors.id).\
+                filter(adoptors.name == x).\
+                delete()
+        session.commit()
 
     for i, x in enumerate(female_names):
-        adoptor = adoptors.filter(name=x)
-        adoptors.drop(adoptor)
+        session.query(Adoptors.id).\
+                filter(adoptors.name == x).\
+                delete()
+        session.commit()
     pass

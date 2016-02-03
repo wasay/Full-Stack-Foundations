@@ -9,13 +9,11 @@ from decimal import Decimal
 
 Base = declarative_base()
 
-from puppies import Shelter, Base, Puppy
+from puppies import Shelter, Base, Puppy, engine
 
 import datetime as import_datetime
 from datetime import date
 from datetime import datetime
-
-engine = create_engine('sqlite:///puppyshelter.db')
 
 # Bind the engine to the metadata of the Base class so that the
 # declaratives can be accessed through a DBSession instance

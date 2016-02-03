@@ -5,9 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-engine = create_engine('sqlite:///puppyshelter.db')
-
-from puppies import Base, Shelter, Puppy, Adoptors, PuppyAdoptors
+from puppies import Base, Shelter, Puppy, Adoptors, PuppyAdoptors, engine
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()

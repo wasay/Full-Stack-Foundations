@@ -11,7 +11,7 @@ def upgrade(migrate_engine):
 
     shelter_puppies = Table('shelter_puppies', meta,
         Column('id', INTEGER, primary_key=True, nullable=False),
-        Column('shelter_id', Integer),
+        Column('shelter_id', INTEGER),
         Column('puppy_id', INTEGER)
     )
     shelter_puppies.create()

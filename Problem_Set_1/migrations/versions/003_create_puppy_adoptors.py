@@ -12,7 +12,7 @@ def upgrade(migrate_engine):
     puppy_adoptors = Table('puppy_adoptors', meta,
         Column('id', INTEGER, primary_key=True, nullable=False),
         Column('puppy_id', INTEGER),
-        Column('adoptor_id', Integer)
+        Column('adoptor_id', INTEGER)
     )
     puppy_adoptors.create()
 

@@ -6,7 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
-from puppies import Base, Shelter, Puppy
+from puppies import Base, Shelter, Puppy, engine
 
 import decimal as import_decimal
 from decimal import Decimal
@@ -14,7 +14,6 @@ import datetime as import_datetime
 from datetime import date
 from datetime import datetime
 
-engine = create_engine('sqlite:///puppyshelter.db')
 
 # Bind the engine to the metadata of the Base class so that the
 # declaratives can be accessed through a DBSession instance

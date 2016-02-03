@@ -1,13 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from puppies import Shelter, Base, Puppy
+from puppies import Shelter, Base, Puppy, engine
 # from flask.ext.sqlalchemy import SQLAlchemy
 
 from random import randint
 import random
-
-engine = create_engine('sqlite:///puppyshelter.db')
 
 Base.metadata.bind = engine
 

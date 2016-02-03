@@ -46,6 +46,15 @@ class PuppyAdoptors(Base):
     adoptor_id = Column(Integer, ForeignKey('adoptor.id'))
     adoptor = relationship(Adoptors)
 
+class ShelterPuppies(Base):
+    __tablename__ = 'shelter_puppies'
+    id = Column(Integer, primary_key=True)
+    shelter_id = Column(Integer, ForeignKey('shelter.id'))
+    shelter = relationship(Shelter)
+    puppy_id = Column(Integer, ForeignKey('puppy.id'))
+    puppy = relationship(Puppy)
+
+
 # Create an engine that stores data in the local directory's
 # puppyshelter.db file.
 engine = create_engine('sqlite:///puppyshelter.db')

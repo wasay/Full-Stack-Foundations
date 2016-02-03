@@ -14,8 +14,12 @@ python migrations/manage.py test
 python migrations/manage.py upgrade
 python main.py
 
-# populate puppy adoptors
+# populate adoptors
 python data_add_adoptors.py
+python main.py
+
+# populate puppy adoptors
+python data_add_puppy_adoptors.py
 python main.py
 
 # update shelter capacity numbers
