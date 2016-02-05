@@ -21,10 +21,11 @@ try:
     while (i < 9):
         print i
         print puppies_list[i]
-        puppy_adopt = PuppyAdoptors(id=None, puppy_id=puppies_list[i].id, adoptor_id=randint(1, 8))
+        puppy_adopt = PuppyAdoptors(id=None, puppy_id=puppies_list[i].id,
+                                    adoptor_id=randint(1, 8))
         session.add(puppy_adopt)
         session.commit()
         i += 1
 except:
-   session.rollback()
-   raise
+    session.rollback()
+    raise

@@ -19,9 +19,9 @@ try:
                        order_by(Shelter.name):
         session.query(Shelter.id).\
                 filter(Shelter.id == row.id).\
-                update({'current_occupancy' : 0,
-                        'maximum_capacity' : randint(0, 10)})
+                update({'current_occupancy': 0,
+                        'maximum_capacity': randint(0, 10)})
         session.commit()
 except:
-   session.rollback()
-   raise
+    session.rollback()
+    raise

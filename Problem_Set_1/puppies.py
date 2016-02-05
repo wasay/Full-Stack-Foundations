@@ -20,6 +20,7 @@ class Shelter(Base):
     current_occupancy = Column(Integer, default=0)
     maximum_capacity = Column(Integer, default=0)
 
+
 class Puppy(Base):
     __tablename__ = 'puppy'
     id = Column(Integer, primary_key=True)
@@ -33,10 +34,12 @@ class Puppy(Base):
     shelter_id = Column(Integer, ForeignKey('shelter.id'))
     shelter = relationship(Shelter)
 
+
 class Adoptors(Base):
     __tablename__ = 'adoptors'
     id = Column(Integer, primary_key=True)
     name = Column(String(250), nullable=False)
+
 
 class PuppyAdoptors(Base):
     __tablename__ = 'puppy_adoptors'
@@ -45,6 +48,7 @@ class PuppyAdoptors(Base):
     puppy = relationship(Puppy)
     adoptor_id = Column(Integer, ForeignKey('adoptors.id'))
     adoptors = relationship(Adoptors)
+
 
 class ShelterPuppies(Base):
     __tablename__ = 'shelter_puppies'
@@ -61,6 +65,6 @@ engine = create_engine('sqlite:///puppyshelter.db')
 
 Base.metadata.create_all(engine)
 
-print "=============================================="
-print "Puppies class file loaded"
-print "=============================================="
+# print "=============================================="
+# print "Puppies class file loaded"
+# print "=============================================="

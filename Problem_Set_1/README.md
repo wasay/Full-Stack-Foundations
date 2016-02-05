@@ -26,9 +26,9 @@ python main.py
 python data_reset_shelter_capacity.py
 python main.py
 
-# check-in puppy into a shelter
-# python checkin.py <function> <puppy_name> <shelter_name>
-python checkin.py checkin Zoey "Oakland Animal Services"
+# check-in a puppy into a shelter
+# python checkin.py <puppy_name> <shelter_name>
+python checkin.py Zoey "Oakland Animal Services"
  
 python main.py
 

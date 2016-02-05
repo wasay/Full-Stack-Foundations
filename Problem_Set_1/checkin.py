@@ -1,21 +1,17 @@
 import os
+import argparse
+import decimal as import_decimal
+import datetime as import_datetime
 
+from decimal import Decimal
+from datetime import date
+from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-import argparse
-
-import decimal as import_decimal
-from decimal import Decimal
-
-Base = declarative_base()
-
 from puppies import Shelter, Base, Puppy, ShelterPuppies, engine
 
-import datetime as import_datetime
-from datetime import date
-from datetime import datetime
-
+Base = declarative_base()
 
 # Bind the engine to the metadata of the Base class so that the
 # declaratives can be accessed through a DBSession instance
@@ -31,90 +27,162 @@ DBSession = sessionmaker(bind=engine)
 # session.rollback()
 session = DBSession()
 
-def checkin(puppy_name, shelter_name):
 
-    shelters = session.query(Shelter.id, Shelter.name,
-                           Shelter.current_occupancy,
+def checkin_puppy(add_puppy_name, add_shelter_name):
+
+    is_valid_add = 0
+    is_accepting = 0
+    add_shelter_id = 0
+    add_puppy_id = 0
+
+    print ''
+
+    try:
+        print ('Locating puppy named %r') % (add_puppy_name)
+        print ('------------------------------------------------')
+        print ('')
+
+        puppy = session.query(Puppy.id, Puppy.name).\
+            filter(Puppy.name == add_puppy_name)
+
+        if (puppy.count() != 0):
+
+            add_puppy_id = puppy[0].id
+            add_puppy_name = puppy[0].name
+
+        if (add_puppy_id != 0):
+
+            print ('Is %r already Checked-In to a shelter') % (add_puppy_name)
+            print ('------------------------------------------------')
+            print ('')
+
+            found_puppy = session.query(ShelterPuppies.id).\
+                filter(ShelterPuppies.puppy_id == add_puppy_id)
+
+            if (found_puppy.count() != 0):
+                print ('Yes, %s is already Checked-In') % (add_puppy_name)
+                add_puppy_id = 0
+            else:
+                print ('Yes, %s is not checked into '
+                       'a shelter yet') % (add_puppy_name)
+
+            print ('------------------------------------------------')
+            print ('')
+
+        else:
+
+            print ('Could not locate puppy named %r') % (add_puppy_name)
+            print ('------------------------------------------------')
+            print ('')
+
+            print ('Suggested list of five puppy names:')
+            print ('------------------------------------------------')
+
+            for rows in session.query(Puppy.name).\
+                filter(Puppy.name != add_puppy_name).\
+                order_by(Puppy.name).limit(5):
+
+                print (row.name)
+
+        print ('------------------------------------------------')
+        print ('')
+    except:
+        raise
+
+    if (add_puppy_id != 0):
+
+        try:
+            print ('Locating shelter named %r') % (add_shelter_name)
+            print ('------------------------------------------------')
+            print ('')
+
+            shelter = session.query(Shelter.id, Shelter.name,
+                                    Shelter.current_occupancy,
+                                    Shelter.maximum_capacity).\
+                filter(Shelter.name == add_shelter_name)
+
+            if (shelter.count() != 0):
+                add_shelter_id = shelters[0].id
+                add_shelter_name = shelters[0].name
+                if (shelter[0].current_occupancy <
+                   shelter[0].maximum_capacity):
+                    is_accepting = 1
+
+            if (shelter.count() == 0 or is_accepting == 0):
+                if (shelter.count() == 0):
+                    print ('Unable to locate %r') % (add_shelter_name)
+                else:
+                    print ('%r is at max capacity') % (add_shelter_name)
+
+                print ('------------------------------------------------')
+                print ('')
+
+                print ('Locating new shelter for this puppy')
+                print ('------------------------------------------------')
+                print ('')
+
+                new_shelter = session.query(Shelter.id, Shelter.name).\
+                    filter(Shelter.name !=
+                           add_shelter_name and
+                           Shelter.current_occupancy <
                            Shelter.maximum_capacity).\
-                       filter(Shelter.name == shelter_name)
-    shelter_count = shelters.count()
+                    order_by(Shelter.maximum_capacity)
 
-    shelter_accepting = 0
-    req_shelter_id = 0
-    if (shelter_count != 0):
-        req_shelter_id = shelters[0].id
-        if (shelters[0].current_occupancy < shelters[0].maximum_capacity):
-            shelter_accepting = 1
+                if (new_shelter is not None and new_shelter.count() != 0):
 
-    puppies = session.query(Puppy.id, Puppy.name).\
-                      filter(Puppy.name == puppy_name)
-    puppy_count = puppies.count()
-    req_puppy_id = 0
-    if (puppy_count != 0):
-        req_puppy_id = puppies[0].id
+                    add_shelter_id = new_shelter[0].id
+                    add_shelter_name = new_shelter[0].name
+                    is_valid_add = 1
+                    print ('Found shelter %s') % (add_shelter_name)
 
+                else:
 
-    if (shelter_count == 0 or shelter_accepting == 0):
-        if (shelter_count == 0):
-            print ('Could not locate the shelter named %r') % (shelter_name)
-        else:
-            print ('This shelter is not accepting any new puppies')
+                    print ('All shelters are at max capacity')
+                    print ('Please add a new shelter for puppies')
 
-        print ''
-        print ('Additional shelters:')
-        for row in session.query(Shelter.id, Shelter.name).\
-                           filter(Shelter.name != shelter_name and
-                                  Shelter.current_occupancy < Shelter.maximum_capacity).\
-                           order_by(Shelter.name):
-            print (row.name)
-    elif (puppy_count == 0):
-        print ('Could not locate puppy named %r') % (puppy_name)
-        print ''
-        print ('Additional puppies:')
-        for row in session.query(Puppy.name).\
-                           filter(Puppy.name != puppy_name).\
-                           order_by(Puppy.name):
-            print (row.name)
+                print ('------------------------------------------------')
+                print ('')
 
-        print ''
-    else:
+            else:
+                is_valid_add = 1
 
-        shelter_puppies = session.query(ShelterPuppies.id).\
-                          filter(ShelterPuppies.puppy_id == req_puppy_id)
-        if (shelter_puppies.count() == 0):
-            print ('Shelter ID: %s and Puppy ID: %s') % (req_shelter_id, req_puppy_id)
-            try:
-                shelter_puppy = ShelterPuppies(id=None,
-                                               shelter_id = req_shelter_id,
-                                               puppy_id = req_puppy_id)
-                session.add(shelter_puppy)
-                session.commit()
-            except:
-                session.rollback()
-                raise
-            print ('The puppy %r is checked in at shelter %s') % (puppy_name, shelter_name)
-        else:
-            print ('The puppy is already checked in to a shelter')
+        except:
+            raise
 
+    if (is_valid_add == 1):
+        try:
+            # print ('Shelter: %s, Puppy: %s') % (add_shelter_id, add_puppy_id)
+            add = ShelterPuppies(id=None,
+                                 shelter_id=add_shelter_id,
+                                 puppy_id=add_puppy_id)
+            session.add(add)
+            session.commit()
 
-dispatch = {
-    'checkin': checkin
-}
+            print ('%r is checked in at %s') % (add_puppy, add_shelter)
+            print ('------------------------------------------------')
+            print ('')
+
+        except:
+            session.rollback()
+            raise
 
 try:
+    dispatch = {
+        'checkin': checkin_puppy
+    }
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('function')
     parser.add_argument('arguments', nargs='*')
     args = parser.parse_args()
 
-    dispatch[args.function](*args.arguments)
-
-#check if requested shelter has capacity for one
-# if no, check if any shelter has capacity for one
-	# if no, prompt user to create a new shelter
-	# if yes, add puppy to shelter
-# if yes, add puppy to shelter
+    dispatch['checkin'](*args.arguments)
 
 except:
-   session.rollback()
-   raise
+    # raise
+    print ('')
+    print ('Usage:')
+    print ('------------------------------------------------')
+    print ('python checkin.py <puppy_name> <shelter_name>')
+    print ('python checkin.py Zoey "Oakland Animal Services"')
+    print ('------------------------------------------------')
+    print ('')

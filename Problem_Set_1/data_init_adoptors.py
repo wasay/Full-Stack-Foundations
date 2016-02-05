@@ -18,16 +18,16 @@ female_names = ['Emma A', 'Olivia B', 'Sophia C', 'Isabella D']
 adoptors = Table('adoptors', meta, autoload=True)
 try:
 
-   for i, x in enumerate(male_names):
-	  adoptor = Adoptors(id=None, name=x)
-	  session.add(adoptor)
-	  session.commit()
+    for i, x in enumerate(male_names):
+        adoptor = Adoptors(id=None, name=x)
+        session.add(adoptor)
+        session.commit()
 
-   for i, x in enumerate(female_names):
-	  adoptor = Adoptors(id=None, name=x)
-	  session.add(adoptor)
-	  session.commit()
+    for i, x in enumerate(female_names):
+        adoptor = Adoptors(id=None, name=x)
+        session.add(adoptor)
+        session.commit()
 
 except:
-   session.rollback()
-   raise
+    session.rollback()
+    raise
