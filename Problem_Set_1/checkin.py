@@ -63,7 +63,7 @@ def checkin_puppy(add_puppy_name, add_shelter_name):
                 print ('Yes, %s is already Checked-In') % (add_puppy_name)
                 add_puppy_id = 0
             else:
-                print ('Yes, %s is not checked into '
+                print ('No, %s is not checked into '
                        'a shelter yet') % (add_puppy_name)
 
             print ('------------------------------------------------')
@@ -105,8 +105,8 @@ def checkin_puppy(add_puppy_name, add_shelter_name):
                 filter(Shelter.name == add_shelter_name)
 
             if (shelter.count() != 0):
-                add_shelter_id = shelters[0].id
-                add_shelter_name = shelters[0].name
+                add_shelter_id = shelter[0].id
+                add_shelter_name = shelter[0].name
                 if (shelter[0].current_occupancy <
                    shelter[0].maximum_capacity):
                     is_accepting = 1

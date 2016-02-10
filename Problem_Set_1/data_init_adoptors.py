@@ -1,9 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Table
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 from puppies import Shelter, Base, Puppy, Adoptors, engine
 # from flask.ext.sqlalchemy import SQLAlchemy
-
 
 Base.metadata.bind = engine
 
@@ -15,7 +17,7 @@ male_names = ["Noah A", "Liam B", "Mason C", "Jacob C"]
 
 female_names = ['Emma A', 'Olivia B', 'Sophia C', 'Isabella D']
 
-adoptors = Table('adoptors', meta, autoload=True)
+#adoptors = Table('adoptors', meta, autoload=True)
 try:
 
     for i, x in enumerate(male_names):
