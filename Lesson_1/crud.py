@@ -4,8 +4,6 @@ from sqlalchemy.orm import sessionmaker
 
 from database_setup import Restaurant, Base, MenuItem
 
-import lotsofmenus
-
 print "CRUD - Lesson 1 - Import"
 
 engine = create_engine('sqlite:///restaurantmenu.db')
