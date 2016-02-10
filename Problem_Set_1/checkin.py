@@ -78,9 +78,12 @@ def checkin_puppy(add_puppy_name, add_shelter_name):
             print ('Suggested list of five puppy names:')
             print ('------------------------------------------------')
 
-            for rows in session.query(Puppy.name).\
+            puppies_list = session.query(Puppy.name).\
                 filter(Puppy.name != add_puppy_name).\
-                order_by(Puppy.name).limit(5):
+                order_by(Puppy.name).limit(5)
+            print ('Suggested puppies count %s') % (puppies_list.count())
+
+            for row in puppies_list:
 
                 print (row.name)
 
@@ -151,7 +154,6 @@ def checkin_puppy(add_puppy_name, add_shelter_name):
 
     if (is_valid_add == 1):
         try:
-            # print ('Shelter: %s, Puppy: %s') % (add_shelter_id, add_puppy_id)
             add = ShelterPuppies(id=None,
                                  shelter_id=add_shelter_id,
                                  puppy_id=add_puppy_id)
@@ -159,6 +161,15 @@ def checkin_puppy(add_puppy_name, add_shelter_name):
             session.commit()
 
             print ('%r is checked in at %s') % (add_puppy, add_shelter)
+            print ('------------------------------------------------')
+            print ('')
+
+            update = Shelter(id=add_shelter_id,
+                             current_occupancy=current_occupancy+1)
+            session.add(update)
+            session.commit()
+
+            print ('Updated current_occupancy of shelter %s') % (add_shelter)
             print ('------------------------------------------------')
             print ('')
 

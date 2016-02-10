@@ -7,9 +7,11 @@ from datetime import datetime
 from decimal import Decimal
 from sqlalchemy import create_engine
 from sqlalchemy import join
+from sqlalchemy import update
+from sqlalchemy.orm import query
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from puppies import Shelter, Base, Puppy, engine
+from puppies import Shelter, Base, Puppy, engine, ShelterPuppies
 
 Base = declarative_base()
 
@@ -28,44 +30,57 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 try:
-    print ('Suggested list of five puppy names:')
+    print ('Get count of puppies and shelters:')
     print ('------------------------------------------------')
 
-    shelters = session.query(Shelter.id, Shelter.name)
+    shelters = session.query(Shelter.id, Shelter.name,
+                             Shelter.current_occupancy)
     puppies = session.query(Puppy.id, Puppy.name)
-    shelter_puppies = session.query(shelter_id, puppy_id)
 
-    puppies_per_shelter = puppies.count() / shelters.count()
-    puppies_per_shelter = rount(puppies_per_shelter)
+    puppies_per_shelter_count = puppies.count() / shelters.count()
+    puppies_per_shelter_count = round(puppies_per_shelter_count)
 
-    print ('Move %s puppies to unassigned shelter') % (puppies_to_add)
-    remove_puppies = session.query(ShelterPuppies.id).limit(puppies_to_add)
-    for row in remove_puppies:
-        puppy_remove = ShelterPuppies(id=row.id)
-        session.delete(puppy_remove)
-        session.commit()
+    print ('Unassign all puppies from Shelter')
+    print ('------------------------------------------------')
+    session.query(ShelterPuppies).delete()
 
-    for row in shelters:
-        print ('Update max capacity for %s to %s') % (row.name, puppies_per_shelter)
-        print ('------------------------------------------------')
+    print ('Update all shelters maximum_capacity to %s')
+    % (puppies_per_shelter_count)
+    print ('------------------------------------------------')
+    session.query(Shelter).\
+        update({Shelter.current_occupancy: 0,
+                Shelter.maximum_capacity: puppies_per_shelter_count},
+               synchronize_session=False)
+    session.commit()
 
-        shelter = Shelter(id=row.id, max_capacity_update=puppies_per_shelter)
-        if (shelter is not None):
-            session.update(shelter)
+    for puppy in puppies:
+
+        accepting_shelter = session.query(Shelter.id, Shelter.name,
+                                          Shelter.current_occupancy).\
+            filter(Shelter.current_occupancy < puppies_per_shelter_count).\
+            limit(1)
+
+        if (accepting_shelter.count() > 0):
+
+            shelter_id = accepting_shelter[0].id
+            shelter_name = accepting_shelter[0].name
+            shelter_occupancy = accepting_shelter[0].current_occupancy
+
+            add = ShelterPuppies(id=None,
+                                 shelter_id=shelter_id,
+                                 puppy_id=puppy.id)
+            session.add(add)
             session.commit()
 
-        print (' for %s to %s') % (row.name, puppies_per_shelter)
-        print ('------------------------------------------------')
-        puppies_per_shelter = session.query(ShelterPuppies.shelter_id,
-            ShelterPuppies.puppy_id).filter(shelter_id==row.id)
-        puppies_to_add = puppies_per_shelter - puppies_per_shelter.count()
+            session.query(Shelter.id).filter(Shelter.id == shelter_id).\
+                update({Shelter.current_occupancy: shelter_occupancy+1},
+                       synchronize_session=False)
+            session.commit()
 
-        if (puppies_to_add > 0):
-            print ('Add puppies to this shelter')
-            add_puppies = session.query(Puppy).join(ShelterPuppies,
-                Puppy.c.id != ShelterPuppies.c.puppy_id)
-            add_puppies = puppies.join(address_table,
-                user_table.c.id == address_table.c.user_id)
+            print ('Puppy Id: %s - %s is checked in at %s')
+            % (puppy.id, puppy.name, shelter_name)
+            print ('------------------------------------------------')
+            print ('')
 
 except:
     session.rollback()
