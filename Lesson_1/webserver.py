@@ -31,9 +31,9 @@ class webServerHandler(BaseHTTPRequestHandler):
                 output += "<h1>Add Restaurant</h1>"
                 output += '''<form method='POST' enctype='multipart/form-data' action='/restaurants/Insert'>'''
                 output += '''<input name="restaurant_id" type="hidden" value="" >'''
-                output += '''Name: <input name="restaurant_name" type="text" value="" >'''
+                output += '''Name: <input name="restaurant_name" type="text" value="" placeholder="New Restaurant Name" >'''
                 output += '''<br><br>'''
-                output += '''<input type="submit" value="Add">'''
+                output += '''<input type="submit" value="Create">'''
                 output += '''</form>'''
                 output += "<p>&nbsp;</p>"
                 output += "</body></html>"
