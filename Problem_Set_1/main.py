@@ -42,7 +42,7 @@ try:
         print (row.name)
 
     print "=============================================="
-    print "2. Query all of the puppies that are less than "
+    print "2. Query all of the puppies that are less than"
     print "six months old organized by the youngest first"
     print "=============================================="
     # os.system("pause")
