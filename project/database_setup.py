@@ -27,6 +27,17 @@ class MenuItem(Base):
     restaurant = relationship(Restaurant)
 
 
+    @property
+    def serialize(self):
+        return {
+            'name': self.name,
+            'description': self.description,
+            'id': self.id,
+            'price': self.price,
+            'course': self.course,
+        }
+
+
 engine = create_engine('sqlite:///restaurantmenu.db')
 
 
