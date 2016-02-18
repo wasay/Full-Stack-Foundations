@@ -50,27 +50,17 @@ def editMenuItem(restaurant_id, menu_id):
             'editmenuitem.html', restaurant_id=restaurant_id, menu_id=menu_id, item=editedItem)
 
 # Task 3: Create a route for deleteMenuItem function here
-@app.route('/restaurants/<int:restaurant_id>/menuitems/<int:menu_id>/delete/')
+@app.route('/restaurants/<int:restaurant_id>/menuitems/<int:menu_id>/delete/', methods=['GET', 'POST'])
 
 def deleteMenuItem(restaurant_id, menu_id):
-    # return "page to delete a menu item. Task 3 complete!"
-
-    restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
-    items = session.query(MenuItem).filter_by(restaurant_id=restaurant.id,id=menu_id).one()
-
-    output = ''
-    if items != False:
-        output += "<h1>Delete Menu Item</h1>"
-        output += '''<form method='POST' enctype='multipart/form-data' action='/restaurants/<int:restaurant_id>/menuitems/<int:menu_id>/remove/'>'''
-        output += ('''Name: %s''') % (items.name)
-        output += '''<br><br>'''
-        output += '''<input type="submit" value="Delete">'''
-        output += '''</form>'''
+    deletedItem = session.query(MenuItem).filter_by(id=menu_id).one()
+    if request.method == 'POST':
+        session.delete(deletedItem)
+        session.commit()
+        return redirect(url_for('restaurantMenu', restaurant_id=restaurant_id))
     else:
-        output += "Unable to locate the menu item"
-    output += "<p>&nbsp;</p>"
-
-    return output
+        return render_template(
+            'deletemenuitem.html', restaurant_id=restaurant_id, menu_id=menu_id, item=deletedItem)
 
 if __name__ == '__main__':
     app.debug = True
