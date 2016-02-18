@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template, request, redirect, url_for
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Restaurant, MenuItem
@@ -17,71 +17,40 @@ session = DBSession()
 def restaurantMenu(restaurant_id):
     restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
     items = session.query(MenuItem).filter_by(restaurant_id=restaurant.id)
-    restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
-    output = ''
-    if restaurant != False:
-        for i in items:
-            output += i.name
-            output += '</br>'
-            output += i.price
-            output += '</br>'
-            output += i.description
-            output += '</br>'
-            output += ('<a href="/restaurants/%s/menuitems/edit/%s/">Edit</a>') % (restaurant_id, i.id)
-            output += '&nbsp;&nbsp;'
-            output += ('<a href="/restaurants/%s/menuitems/delete/%s/">Delete</a>') % (restaurant_id, i.id)
-            output += '</br>'
-            output += '</br>'
 
-        output += ('<a href="/restaurants/%s/menuitems/new/">Add a menu item</a>') % (restaurant_id)
-    else:
-        output += "Unable to locate restaurant"
-    output += "<p>&nbsp;</p>"
-
-    return output
+    return render_template('menu.html', restaurant=restaurant, items = items)
 
 # Task 1: Create route for newMenuItem function here
-@app.route('/restaurants/<int:restaurant_id>/menuitems/new/')
+@app.route('/restaurants/<int:restaurant_id>/menuitems/new/', methods=['GET', 'POST'])
 
 def newMenuItem(restaurant_id):
     # return "page to create a new menu item. Task 1 complete!"
-    restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
-    output = ''
-    if restaurant != False:
-        output += "<h1>Add a Menu Item</h1>"
-        output += ('''<form method='POST' enctype='multipart/form-data' action='/restaurants/%s/menuitems/add/'>''') % (restaurant_id)
-        output += '''Name: <input name="menu_item_name" type="text" value="" placeholder="New Menu Item" >'''
-        output += '''<br><br>'''
-        output += '''<input type="submit" value="Create Menu Item">'''
-        output += '''</form>'''
+    if request.method == 'POST':
+        newItem = MenuItem(
+            name=request.form['name'], restaurant_id=restaurant_id)
+        session.add(newItem)
+        session.commit()
+        return redirect(url_for('restaurantMenu', restaurant_id=restaurant_id))
     else:
-        output += "Unable to locate restaurant"
-    output += "<p>&nbsp;</p>"
-    return output
+        return render_template('newmenuitem.html', restaurant_id=restaurant_id)
 
 # Task 2: Create route for editMenuItem function here
-@app.route('/restaurants/<int:restaurant_id>/menuitems/edit/<int:menu_id>/')
+@app.route('/restaurants/<int:restaurant_id>/menuitems/<int:menu_id>/edit/', methods=['GET', 'POST'])
 
 def editMenuItem(restaurant_id, menu_id):
-    # return "page to edit a menu item. Task 2 complete!"
-    restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
-    items = session.query(MenuItem).filter_by(restaurant_id=restaurant.id,id=menu_id).one()
-
-    output = ''
-    if items != False:
-        output += "<h1>Edit Menu Item</h1>"
-        output += '''<form method='POST' enctype='multipart/form-data' action='/restaurants/<int:restaurant_id>/menuitems/update/<int:menu_id>/'>'''
-        output += ('''Name: <input name="menu_item_name" type="text" value="%s" placeholder="Update Menu Item" >''') % (items.name)
-        output += '''<br><br>'''
-        output += '''<input type="submit" value="Update">'''
-        output += '''</form>'''
+    editedItem = session.query(MenuItem).filter_by(id=menu_id).one()
+    if request.method == 'POST':
+        if request.form['name']:
+            editedItem.name = request.form['name']
+        session.add(editedItem)
+        session.commit()
+        return redirect(url_for('restaurantMenu', restaurant_id=restaurant_id))
     else:
-        output += "Unable to locate the menu item"
-    output += "<p>&nbsp;</p>"
-    return output
+        return render_template(
+            'editmenuitem.html', restaurant_id=restaurant_id, menu_id=menu_id, item=editedItem)
 
 # Task 3: Create a route for deleteMenuItem function here
-@app.route('/restaurants/<int:restaurant_id>/menuitems/delete/<int:menu_id>/')
+@app.route('/restaurants/<int:restaurant_id>/menuitems/<int:menu_id>/delete/')
 
 def deleteMenuItem(restaurant_id, menu_id):
     # return "page to delete a menu item. Task 3 complete!"
@@ -92,7 +61,7 @@ def deleteMenuItem(restaurant_id, menu_id):
     output = ''
     if items != False:
         output += "<h1>Delete Menu Item</h1>"
-        output += '''<form method='POST' enctype='multipart/form-data' action='/restaurants/<int:restaurant_id>/menuitems/remove/<int:menu_id>/'>'''
+        output += '''<form method='POST' enctype='multipart/form-data' action='/restaurants/<int:restaurant_id>/menuitems/<int:menu_id>/remove/'>'''
         output += ('''Name: %s''') % (items.name)
         output += '''<br><br>'''
         output += '''<input type="submit" value="Delete">'''
