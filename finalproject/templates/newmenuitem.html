@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>New Menu Item</title>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+		integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
+		integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+		integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
+		crossorigin="anonymous"></script>
+	<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<nav class="navbar navbar-default navbar-static-top">
+	<div class="container">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".main-navbar">
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="{{url_for('showRestaurants')}}">Restaurants Directory</a>
+		</div>
+	</div>
+</nav>
+<div id="header">
+	<section class="section">
+		<div class="container">
+			<ol class="breadcrumb">
+				<li><a href="{{url_for('showRestaurants')}}">Home</a></li>
+				<li><a href="{{url_for('editRestaurant',restaurant_id=restaurant.id)}}">{{ restaurant.name }}</a></li>
+				<li><a href="{{url_for('showMenu',restaurant_id=restaurant.id)}}">Menu Items</a></li>
+				<li class="active">New Menu Item</li>
+			</ol>
+			<h1>New Menu Item</h1>
+		</div>
+	</section>
+</div>
+<div id="content">
+	<section class="section">
+		<div class="container">
+			<form action="{{url_for('newMenuItem', restaurant_id=restaurant.id )}}" method='POST'>
+				<dl>
+					<dt>Name:</dt>
+					<dd><input type='text' size='30' name='name' placeholder='New Menu Item Name'></dd>
+					<br>
+					<dt>Description:</dt>
+					<dd><textarea name='description' rows='5' cols='40'
+						placeholder='New Menu Item Description'></textarea></dd>
+						<br>
+					<dt>Price:</dt>
+					<dd><input type='text' size='8' name='price' placeholder='$1.99'></dd>
+					<br>
+					<dt>Course:</dt>
+
+					<dd><input type='radio' name='course' value='Appetizer'> Appetizer</dd>
+
+					<dd><input type='radio' name='course' value='Entree'> Entree</dd>
+
+					<dd><input type='radio' name='course' value='Dessert'> Dessert</dd>
+
+					<dd><input type='radio' name='course' value='Beverage'> Beverage</dd>
+
+				</dl>
+
+				<input type='submit' value='Create'>
+				&nbsp;<input type="button" value="Cancel"
+				onclick="window.location='{{ url_for('showMenu', restaurant_id=restaurant.id) }}'">
+
+				<br>
+				<br>
+				<br>
+
+			</form>
+		</div>
+	</section>
+</div>
+</body>
+
+</html>
