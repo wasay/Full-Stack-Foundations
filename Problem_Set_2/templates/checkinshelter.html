@@ -1,11 +1,14 @@
-{% import 'pagination.html' as macros %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Puppies</title>
+	<title>Check-In Shelter</title>
+
+	<!-- jquery-ui -->
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+
 	<!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
 		integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -14,11 +17,19 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
 		integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
 
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+
+    <!-- jquery-ui -->
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
 	<!-- Latest compiled and minified JavaScript -->
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
 		integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
 		crossorigin="anonymous"></script>
-	<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+
 </head>
 <body>
 <div class="container">
@@ -53,74 +64,43 @@
 <div id="header">
 	<section class="section">
 		<div class="container">
-			<a class="btn btn-primary" style="float:right;margin-top:20px;" href="{{url_for('newPuppy') }}"
-							role="button">Add New Puppy</a>
-			<h1>PAWs -- The Puppy Adoption Website</h1>
+			<ol class="breadcrumb">
+				<li><a href="{{url_for('showShelters')}}">Shelters</a></li>
+				<li class="active">Check-In Shelter</li>
+			</ol>
+			<h1>Check-In Shelter</h1>
 		</div>
 	</section>
 </div>
 <div id="content">
 	<section class="section">
 		<div class="container">
-			{% with messages = get_flashed_messages() %}
-			{% if messages %}
+			<form action="{{url_for('checkinShelter', shelter_id=shelter_id)}}" method='POST'>
+
+				<dl>
+					<dt>Puppies to Check-In:</dt>
+					<dd>
+						<select name="puppy_ids" multiple size=5 style="width:250px;">
+							<option value="">Select Optional</option>
+							{% for puppy in puppies %}
+								{% set select_puppy = False %}
+								{% for adopted in puppy_owners %}
+									{% if puppy.shelter_id == shelter_id %}
+										{% set select_puppy = True %}
+									{%endif%}
+								{% endfor %}
+								<option value="{{puppy.id}}" {% if select_puppy %}selected=selected{%endif%}>{{puppy.name}}</option>
+							{% endfor %}
+						</select>
+					</dd>
+				</dl>
+
+				<input type='submit' value='Update'>
+				&nbsp;<input type="button" value="Cancel"
+				onclick="window.location='{{ url_for('showShelters') }}'">
+			</form>
 			<br>
-			<div class="alert alert-info" role="alert">
-				<ul>
-					{% for message in messages %}
-					<li><strong> {{ message }} </strong></li>
-					{% endfor %}
-				</ul>
-			</div>
-			{% endif %}
-			{% endwith %}
-
-			{% if pagination %}
-				{{ macros.render_pagination(pagination, endpoint) }}
-			{% endif %}
-			<!-- Table -->
-			<table class="table table-striped">
-				<thead>
-				<tr>
-					<th>
-						Puppy Name
-					</th>
-					<th>Is Adopted</th>
-					<th>View Profile</th>
-					<th></th>
-					<th></th>
-				</tr>
-				</thead>
-				<tbody>
-				{% for i in results %}
-				<tr>
-					<td>
-						{{i.name}}
-					</td>
-					<td>
-						{% if i.shelter_id == None %}
-							Yes
-						{% else %}
-							No
-						{% endif %}
-					</td>
-					<td>
-						<a href="{{url_for('viewPuppy', puppy_id = i.id)}}">View Profile</a>
-					</td>
-					<td>
-						<a href="{{url_for('editPuppy', puppy_id = i.id)}}">Edit</a>
-					</td>
-					<td>
-						<a href="{{url_for('deletePuppy', puppy_id = i.id)}}">Delete</a>
-					</td>
-				</tr>
-				{% endfor %}
-				</tbody>
-			</table>
-			{% if pagination %}
-				{{ macros.render_pagination(pagination, endpoint) }}
-			{% endif %}
-
+			<br>
 		</div>
 	</section>
 </div>

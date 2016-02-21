@@ -117,9 +117,12 @@ def viewPuppy(puppy_id):
     puppy = session.query(Puppies).filter_by(id=puppy_id).one()
 
     shelters = session.query(Shelters).order_by('name')
+    owners = session.query(Owners).order_by('name')
+    puppy_owners = session.query(PuppyOwners).filter_by(puppy_id=puppy_id)
 
     return render_template(
-        'viewpuppy.html', puppy_id=puppy_id, item=puppy, shelters=shelters)
+        'viewpuppy.html', puppy_id=puppy_id, item=puppy, shelters=shelters,
+        owners=owners, puppy_owners=puppy_owners)
 
 @app.route('/puppy/<int:puppy_id>/adopt', methods=['GET', 'POST'])
 def adoptPuppy(puppy_id):
@@ -129,6 +132,11 @@ def adoptPuppy(puppy_id):
     if puppy :
 
         if request.method == 'POST':
+            puppy_owners = session.query(PuppyOwners).filter_by(puppy_id=puppy_id)
+            for puppy_owner in puppy_owners:
+                session.delete(puppy_owner)
+                session.commit()
+
             owner_ids = request.form['owner_ids']
             for owner in owner_ids:
 
@@ -136,14 +144,19 @@ def adoptPuppy(puppy_id):
                     owner_id=owner)
 
                 session.add(newItem)
+
+                puppy.shelter_id=None
+                session.add(puppy)
+
                 session.commit()
 
             flash("Puppy Successfully Adopted by Owner")
             return redirect(url_for('showPuppies'))
         else:
             owners = session.query(Owners).order_by('name')
+            puppy_owners = session.query(PuppyOwners)
             return render_template(
-                'adoptpuppy.html', puppy_id=puppy_id, item=puppy, owners=owners)
+                'adoptpuppy.html', puppy_id=puppy_id, item=puppy, owners=owners, puppy_owners=puppy_owners)
     else:
         flash("Unable to locate Puppy")
         return redirect(url_for('showPuppies'))
@@ -247,6 +260,36 @@ def deleteShelter(shelter_id):
     else:
         flash("Unable to locate Shelter")
         return redirect(url_for('showShelters'))
+
+@app.route('/shelter/<int:shelter_id>/checkin', methods=['GET', 'POST'])
+def checkinShelter(shelter_id):
+
+    shelter = session.query(Shelters).filter_by(id=shelter_id).one()
+
+    if request.method == 'POST':
+        if request.form['puppy_ids']:
+            puppy_ids = request.form['puppy_ids']
+
+            for puppy_id in puppy_ids:
+                puppy = session.query(Puppies).filter_by(id=puppy_id).one()
+
+                puppy_owners = session.query(PuppyOwners).filter_by(puppy_id=puppy.id)
+                for puppy_owner in puppy_owners:
+                    session.delete(puppy_owner)
+                    session.commit()
+
+                puppy.shelter_id = shelter_id
+                session.add(puppy)
+                session.commit()
+
+            flash("Shelter Checkin Successfully Update")
+        else:
+            flash("Shelter Checkin Not Complete")
+        return redirect(url_for('showShelters'))
+    else:
+        puppies = session.query(Puppies).order_by('name')
+        return render_template(
+            'checkinshelter.html', shelter_id=shelter_id, item=shelter, puppies=puppies)
 
 @app.route('/owners')
 @app.route('/owners/')

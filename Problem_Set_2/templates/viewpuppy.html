@@ -91,6 +91,14 @@
 				{% endif %}
 			{% endfor %}
 
+			{% for adopted in puppy_owners %}
+				{% for owner in owners %}
+					{% if adopted.owner_id == owner.id %}
+						<h3>Adopted by: {{owner.name}}</h3>
+					{%endif%}
+				{% endfor %}
+			{% endfor %}
+
 			<br>
 			<br>
 		</div>

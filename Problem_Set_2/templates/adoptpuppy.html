@@ -85,8 +85,14 @@
 					<dd>
 						<select name="owner_ids" multiple size=5>
 							<option value="">Select Optional</option>
-							{% for i in owners %}
-							    <option value="{{i.id}}" {% if item.owner_id == i.id %}selected=selected{%endif%}>{{i.name}}</option>
+							{% for owner in owners %}
+								{% set select_owner = False %}
+								{% for adopted in puppy_owners %}
+									{% if adopted.owner_id == owner.id %}
+										{% set select_owner = True %}
+									{%endif%}
+								{% endfor %}
+								<option value="{{owner.id}}" {% if select_owner %}selected=selected{%endif%}>{{owner.name}}</option>
 							{% endfor %}
 						</select>
 					</dd>

@@ -21,6 +21,10 @@ try:
         puppy_adopt = PuppyOwners(id=None, puppy_id=row.id,
                                     owner_id=randint(1, 8))
         session.add(puppy_adopt)
+
+        row.shelter_id=None
+        session.add(row)
+
         session.commit()
 except:
     session.rollback()

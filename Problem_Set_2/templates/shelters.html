@@ -82,9 +82,7 @@
 			<table class="table table-striped">
 				<thead>
 				<tr>
-					<th>
-						Shelter Name
-					</th>
+					<th>Shelter Name</th>
 					<th>Is Accepting</th>
 					<th></th>
 					<th></th>
@@ -97,7 +95,11 @@
 						{{i.name}}
 					</td>
 					<td>
-						Yes/No
+						{% if i.maximum_capacity > i.current_occupancy %}
+							Yes - <a href="{{url_for('checkinShelter', shelter_id = i.id)}}">Check-In</a>
+						{% else %}
+							No
+						{% endif %}
 					</td>
 					<td>
 						<a href="{{url_for('editShelter', shelter_id = i.id)}}">Edit</a>
