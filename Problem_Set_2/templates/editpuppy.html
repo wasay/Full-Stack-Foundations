@@ -124,7 +124,9 @@
 					<dd>
 						<select name="shelter_id">
 							<option value="">Select Optional</option>
-							<option value="1" {% if item.shelter_id == 1 %}selected=selected{%endif%}>The Shelter Name</option>
+							{% for i in shelters %}
+							    <option value="{{i.id}}" {% if item.shelter_id == i.id %}selected=selected{%endif%}>{{i.name}}</option>
+							{% endfor %}
 						</select>
 					</dd>
 				</dl>

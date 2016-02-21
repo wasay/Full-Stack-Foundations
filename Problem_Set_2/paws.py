@@ -38,7 +38,8 @@ def showPuppies(page=1):
 
     endpoint = 'showPuppies'
 
-    return render_template('puppies.html', results=results, all_count=all_count, endpoint=endpoint, pagination=pagination)
+    return render_template('puppies.html', results=results, all_count=all_count,
+        endpoint=endpoint, pagination=pagination)
 
 @app.route('/puppy/new', methods=['GET', 'POST'])
 def newPuppy():
@@ -69,7 +70,8 @@ def newPuppy():
             flash("New Puppy Not Created")
         return redirect(url_for('showPuppies'))
     else:
-        return render_template('newpuppy.html')
+        shelters = session.query(Shelters).order_by('name')
+        return render_template('newpuppy.html', shelters=shelters)
 
 @app.route('/puppy/<int:puppy_id>/edit', methods=['GET', 'POST'])
 def editPuppy(puppy_id):
@@ -86,8 +88,9 @@ def editPuppy(puppy_id):
             flash("Puppy Not Edited")
         return redirect(url_for('showPuppies'))
     else:
+        shelters = session.query(Shelters).order_by('name')
         return render_template(
-            'editpuppy.html', puppy_id=puppy_id, item=puppy)
+            'editpuppy.html', puppy_id=puppy_id, item=puppy, shelters=shelters)
 
 @app.route('/puppy/<int:puppy_id>/delete', methods=['GET', 'POST'])
 def deletePuppy(puppy_id):
@@ -107,6 +110,44 @@ def deletePuppy(puppy_id):
     else:
         flash("Unable to locate Puppy")
         return redirect(url_for('showPuppies'))
+
+@app.route('/puppy/<int:puppy_id>/view')
+def viewPuppy(puppy_id):
+
+    puppy = session.query(Puppies).filter_by(id=puppy_id).one()
+
+    shelters = session.query(Shelters).order_by('name')
+
+    return render_template(
+        'viewpuppy.html', puppy_id=puppy_id, item=puppy, shelters=shelters)
+
+@app.route('/puppy/<int:puppy_id>/adopt', methods=['GET', 'POST'])
+def adoptPuppy(puppy_id):
+
+    puppy = session.query(Puppies).filter_by(id=puppy_id).one()
+
+    if puppy :
+
+        if request.method == 'POST':
+            owner_ids = request.form['owner_ids']
+            for owner in owner_ids:
+
+                newItem = PuppyOwners(puppy_id=puppy_id,
+                    owner_id=owner)
+
+                session.add(newItem)
+                session.commit()
+
+            flash("Puppy Successfully Adopted by Owner")
+            return redirect(url_for('showPuppies'))
+        else:
+            owners = session.query(Owners).order_by('name')
+            return render_template(
+                'adoptpuppy.html', puppy_id=puppy_id, item=puppy, owners=owners)
+    else:
+        flash("Unable to locate Puppy")
+        return redirect(url_for('showPuppies'))
+
 
 @app.route('/shelters')
 @app.route('/shelters/')
@@ -252,11 +293,41 @@ def newOwner():
 
 @app.route('/owner/<int:owner_id>/edit', methods=['GET', 'POST'])
 def editOwner(owner_id):
-    return render_template('editowner.html')
+
+    owner = session.query(Owners).filter_by(id=owner_id).one()
+
+    if request.method == 'POST':
+        if request.form['name']:
+            owner.name = request.form['name']
+
+            session.add(owner)
+            session.commit()
+            flash("Owner Successfully Edited")
+        else:
+            flash("Owner Not Edited")
+        return redirect(url_for('showOwners'))
+    else:
+        return render_template(
+            'editowner.html', owner_id=owner_id, item=owner)
 
 @app.route('/owner/<int:owner_id>/delete', methods=['GET', 'POST'])
 def deleteOwner(owner_id):
-    return render_template('deleteowner.html')
+
+    owner = session.query(Owners).filter_by(id=owner_id).one()
+
+    if owner :
+
+        if request.method == 'POST':
+            session.delete(owner)
+            session.commit()
+            flash("Owner Successfully Deleted")
+            return redirect(url_for('showOwners'))
+        else:
+            return render_template(
+                'deleteowner.html', item=owner)
+    else:
+        flash("Unable to locate Owner")
+        return redirect(url_for('showOwners'))
 
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
