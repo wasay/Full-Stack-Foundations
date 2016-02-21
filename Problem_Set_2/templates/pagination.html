@@ -5,7 +5,7 @@
 			{% if page != pagination.page %}
 				<li><a href="{{ url_for(endpoint, page=page) }}">{{ page }}</a></li>
 			{% else %}
-				<li><a href="#">{{ page }}</a></li>
+				<li class="active"><a href="#">{{ page }}</a></li>
 			{% endif %}
 		{% else %}
 			<span class=ellipsis>…</span>
