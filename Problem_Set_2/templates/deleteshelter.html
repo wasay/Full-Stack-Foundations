@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Delete Puppy</title>
+	<title>Delete Shelter</title>
 
 	<!-- jquery-ui -->
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
@@ -64,23 +64,23 @@
 	<section class="section">
 		<div class="container">
 			<ol class="breadcrumb">
-				<li><a href="{{url_for('showPuppies')}}">Puppies</a></li>
-				<li class="active">Delete Puppy</li>
+				<li><a href="{{url_for('showShelters')}}">Shelters</a></li>
+				<li class="active">Delete Shelter</li>
 			</ol>
-			<h1>Delete Puppy</h1>
+			<h1>Delete Shelter</h1>
 		</div>
 	</section>
 </div>
 <div id="content">
 	<section class="section">
 		<div class="container">
-			<form action="{{ url_for('deletePuppy', puppy_id=item.id) }}"
+			<form action="{{ url_for('deleteShelter', shelter_id=item.id) }}"
 				method='post'>
 				<p>Are you sure you want to delete {{item.name}}?</p>
 
 				<input type='submit' value='Delete'>
 				&nbsp;<input type="button" value="Cancel"
-				onclick="window.location='{{ url_for('showPuppies') }}'">
+				onclick="window.location='{{ url_for('showShelters') }}'">
 			</form>
 		</div>
 	</section>

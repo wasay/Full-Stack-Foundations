@@ -4,7 +4,7 @@ from sqlalchemy import Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from puppies import Shelter, Base, Puppy, Adoptors, engine
+from database_setup import Base, engine, Owners
 # from flask.ext.sqlalchemy import SQLAlchemy
 
 Base.metadata.bind = engine
@@ -17,17 +17,17 @@ male_names = ["Noah A", "Liam B", "Mason C", "Jacob C"]
 
 female_names = ['Emma A', 'Olivia B', 'Sophia C', 'Isabella D']
 
-#adoptors = Table('adoptors', meta, autoload=True)
+#owners = Table('owners', meta, autoload=True)
 try:
 
     for i, x in enumerate(male_names):
-        adoptor = Adoptors(id=None, name=x)
-        session.add(adoptor)
+        owner = Owners(id=None, name=x)
+        session.add(owner)
         session.commit()
 
     for i, x in enumerate(female_names):
-        adoptor = Adoptors(id=None, name=x)
-        session.add(adoptor)
+        owner = Owners(id=None, name=x)
+        session.add(owner)
         session.commit()
 
 except:

@@ -75,7 +75,9 @@
 			{% endif %}
 			{% endwith %}
 
-			{{ macros.render_pagination(pagination, endpoint) }}
+			{% if pagination %}
+				{{ macros.render_pagination(pagination, endpoint) }}
+			{% endif %}
 			<!-- Table -->
 			<table class="table table-striped">
 				<thead>
@@ -107,7 +109,9 @@
 				{% endfor %}
 				</tbody>
 			</table>
-			{{ macros.render_pagination(pagination, endpoint) }}
+			{% if pagination %}
+				{{ macros.render_pagination(pagination, endpoint) }}
+			{% endif %}
 
 		</div>
 	</section>

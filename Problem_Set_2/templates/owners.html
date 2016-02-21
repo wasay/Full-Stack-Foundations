@@ -53,7 +53,7 @@
 <div id="header">
 	<section class="section">
 		<div class="container">
-			<a class="btn btn-primary" style="float:right;margin-top:20px;" href="{{url_for('newShelter') }}"
+			<a class="btn btn-primary" style="float:right;margin-top:20px;" href="{{url_for('newOwner') }}"
 							role="button">Add New Owner</a>
 			<h1>Owners</h1>
 		</div>
@@ -75,7 +75,9 @@
 			{% endif %}
 			{% endwith %}
 
-			{{ macros.render_pagination(pagination, endpoint) }}
+			{% if pagination %}
+				{{ macros.render_pagination(pagination, endpoint) }}
+			{% endif %}
 			<!-- Table -->
 			<table class="table table-striped">
 				<thead>
@@ -107,7 +109,9 @@
 				{% endfor %}
 				</tbody>
 			</table>
-			{{ macros.render_pagination(pagination, endpoint) }}
+			{% if pagination %}
+				{{ macros.render_pagination(pagination, endpoint) }}
+			{% endif %}
 
 		</div>
 	</section>

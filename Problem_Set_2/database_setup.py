@@ -8,8 +8,8 @@ from sqlalchemy import create_engine
 Base = declarative_base()
 
 
-class Shelter(Base):
-    __tablename__ = 'shelter'
+class Shelters(Base):
+    __tablename__ = 'shelters'
     id = Column(Integer, primary_key=True)
     name = Column(String(80), nullable=False)
     address = Column(String(250))
@@ -35,8 +35,8 @@ class Shelter(Base):
         }
 
 
-class Puppy(Base):
-    __tablename__ = 'puppy'
+class Puppies(Base):
+    __tablename__ = 'puppies'
     id = Column(Integer, primary_key=True)
     name = Column(String(250), nullable=False)
     gender = Column(String(6), nullable=False)
@@ -45,8 +45,8 @@ class Puppy(Base):
     weight = Column(Numeric(3))
     description = Column(String)
     special_needs = Column(String)
-    shelter_id = Column(Integer, ForeignKey('shelter.id'))
-    shelter = relationship(Shelter)
+    shelter_id = Column(Integer, ForeignKey('shelters.id'))
+    shelters = relationship(Shelters)
 
     @property
     def serialize(self):
@@ -77,10 +77,10 @@ class Owners(Base):
 
 
 class PuppyOwners(Base):
-    __tablename__ = 'puppy_adoptors'
+    __tablename__ = 'puppy_owners'
     id = Column(Integer, primary_key=True)
-    puppy_id = Column(Integer, ForeignKey('puppy.id'))
-    puppy = relationship(Puppy)
+    puppy_id = Column(Integer, ForeignKey('puppies.id'))
+    puppies = relationship(Puppies)
     owner_id = Column(Integer, ForeignKey('owners.id'))
     owners = relationship(Owners)
 
@@ -96,10 +96,10 @@ class PuppyOwners(Base):
 class ShelterPuppies(Base):
     __tablename__ = 'shelter_puppies'
     id = Column(Integer, primary_key=True)
-    shelter_id = Column(Integer, ForeignKey('shelter.id'))
-    shelter = relationship(Shelter)
-    puppy_id = Column(Integer, ForeignKey('puppy.id'))
-    puppy = relationship(Puppy)
+    shelter_id = Column(Integer, ForeignKey('shelters.id'))
+    shelters = relationship(Shelters)
+    puppy_id = Column(Integer, ForeignKey('puppies.id'))
+    puppies = relationship(Puppies)
 
     @property
     def serialize(self):
@@ -110,6 +110,5 @@ class ShelterPuppies(Base):
         }
 
 engine = create_engine('sqlite:///puppyshelter.db')
-
 
 Base.metadata.create_all(engine)

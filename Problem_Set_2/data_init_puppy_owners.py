@@ -4,7 +4,7 @@ from sqlalchemy import Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from puppies import Shelter, Base, Puppy, PuppyAdoptors, engine
+from database_setup import Base, engine, Puppies, Owners, PuppyOwners
 # from flask.ext.sqlalchemy import SQLAlchemy
 
 from random import randint
@@ -16,16 +16,12 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 try:
-    puppies_list = session.query(Puppy.id, Puppy.name).order_by(Puppy.name)
-    i = 1
-    while (i < 9):
-        print i
-        print puppies_list[i]
-        puppy_adopt = PuppyAdoptors(id=None, puppy_id=puppies_list[i].id,
-                                    adoptor_id=randint(1, 8))
+    puppies_list = session.query(Puppies.id, Puppies.name).order_by(Puppies.name).limit(9)
+    for row in puppies_list:
+        puppy_adopt = PuppyOwners(id=None, puppy_id=row.id,
+                                    owner_id=randint(1, 8))
         session.add(puppy_adopt)
         session.commit()
-        i += 1
 except:
     session.rollback()
     raise

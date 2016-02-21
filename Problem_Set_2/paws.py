@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database_setup import Base, Shelter, Puppy, Owners, PuppyOwners, ShelterPuppies, engine
+from database_setup import Base, engine, Shelters, Puppies, Owners, PuppyOwners, ShelterPuppies
 from flask.ext.sqlalchemy import Pagination
 import datetime
 
@@ -24,13 +24,13 @@ PER_PAGE = 20
 @app.route('/puppies/page/<int:page>/')
 def showPuppies(page=1):
 
-    all_results = session.query(Puppy).order_by('name')
+    all_results = session.query(Puppies).order_by('name')
     all_count = all_results.count()
 
     if page == 1:
-        results = session.query(Puppy).order_by('name').limit(PER_PAGE)
+        results = session.query(Puppies).order_by('name').limit(PER_PAGE)
     else:
-        results = session.query(Puppy).order_by('name').limit(PER_PAGE).offset(PER_PAGE*(page-1))
+        results = session.query(Puppies).order_by('name').limit(PER_PAGE).offset(PER_PAGE*(page-1))
 
     if not results and page != 1:
         abort(404)
@@ -55,7 +55,7 @@ def newPuppy():
             day,month,year = dateOfBirth.split('/')
             dateOfBirth = datetime.date(int(year),int(month),int(day))
 
-            newItem = Puppy(name=name,
+            newItem = Puppies(name=name,
                 gender=gender,
                 dateOfBirth=dateOfBirth,
                 picture=picture,
@@ -74,7 +74,7 @@ def newPuppy():
 @app.route('/puppy/<int:puppy_id>/edit', methods=['GET', 'POST'])
 def editPuppy(puppy_id):
 
-    puppy = session.query(Puppy).filter_by(id=puppy_id).one()
+    puppy = session.query(Puppies).filter_by(id=puppy_id).one()
 
     if request.method == 'POST':
         if request.form['name']:
@@ -92,7 +92,7 @@ def editPuppy(puppy_id):
 @app.route('/puppy/<int:puppy_id>/delete', methods=['GET', 'POST'])
 def deletePuppy(puppy_id):
 
-    puppy = session.query(Puppy).filter_by(id=puppy_id).one()
+    puppy = session.query(Puppies).filter_by(id=puppy_id).one()
 
     if puppy :
 
@@ -116,13 +116,13 @@ def deletePuppy(puppy_id):
 @app.route('/shelters/page/<int:page>/')
 def showShelters(page=1):
 
-    all_results = session.query(Shelter).order_by('name')
+    all_results = session.query(Shelters).order_by('name')
     all_count = all_results.count()
 
     if page == 1:
-        results = session.query(Shelter).order_by('name').limit(PER_PAGE)
+        results = session.query(Shelters).order_by('name').limit(PER_PAGE)
     else:
-        results = session.query(Shelter).order_by('name').limit(PER_PAGE).offset(PER_PAGE*(page-1))
+        results = session.query(Shelters).order_by('name').limit(PER_PAGE).offset(PER_PAGE*(page-1))
 
     if not results and page != 1:
         abort(404)
@@ -145,7 +145,7 @@ def newShelter():
             website = request.form['website']
             maximum_capacity = request.form['maximum_capacity']
 
-            newItem = Shelter(name=name,
+            newItem = Shelters(name=name,
                 address=address,
                 city=city,
                 state=state,
@@ -166,7 +166,7 @@ def newShelter():
 @app.route('/shelter/<int:shelter_id>/edit', methods=['GET', 'POST'])
 def editShelter(shelter_id):
 
-    shelter = session.query(Shelter).filter_by(id=shelter_id).one()
+    shelter = session.query(Shelters).filter_by(id=shelter_id).one()
 
     if request.method == 'POST':
         if request.form['name']:
@@ -190,25 +190,73 @@ def editShelter(shelter_id):
 
 @app.route('/shelter/<int:shelter_id>/delete', methods=['GET', 'POST'])
 def deleteShelter(shelter_id):
-    return "Delete Shelter Information"
+
+    shelter = session.query(Shelters).filter_by(id=shelter_id).one()
+
+    if shelter :
+
+        if request.method == 'POST':
+            session.delete(shelter)
+            session.commit()
+            flash("Shelter Successfully Deleted")
+            return redirect(url_for('showShelters'))
+        else:
+            return render_template(
+                'deleteshelter.html', item=shelter)
+    else:
+        flash("Unable to locate Shelter")
+        return redirect(url_for('showShelters'))
 
 @app.route('/owners')
+@app.route('/owners/')
 @app.route('/owners/page')
+@app.route('/owners/page/')
+@app.route('/owners/<int:page>/')
 @app.route('/owners/page/<int:page>/')
-def showOwners(page):
-    return "Owners List"
+def showOwners(page=1):
+
+    all_results = session.query(Owners).order_by('name')
+    all_count = all_results.count()
+
+    if page == 1:
+        results = session.query(Owners).order_by('name').limit(PER_PAGE)
+    else:
+        results = session.query(Owners).order_by('name').limit(PER_PAGE).offset(PER_PAGE*(page-1))
+
+    if not results and page != 1:
+        abort(404)
+    pagination = Pagination(all_results, page, PER_PAGE, all_count, None)
+
+    endpoint = 'showOwners'
+
+    return render_template('owners.html', results=results, all_count=all_count, endpoint=endpoint, pagination=pagination)
+
 
 @app.route('/owner/new', methods=['GET', 'POST'])
 def newOwner():
-    return "Add Owner"
+    if request.method == 'POST':
+        if request.form['name']:
+            name = request.form['name']
+
+            newItem = Owners(name=name)
+
+            session.add(newItem)
+            session.commit()
+            flash("New Owner Created")
+        else:
+            flash("New Owner Not Created")
+
+        return redirect(url_for('showOwners'))
+    else:
+        return render_template('newowner.html')
 
 @app.route('/owner/<int:owner_id>/edit', methods=['GET', 'POST'])
 def editOwner(owner_id):
-    return "Edit Owner Information"
+    return render_template('editowner.html')
 
 @app.route('/owner/<int:owner_id>/delete', methods=['GET', 'POST'])
 def deleteOwner(owner_id):
-    return "Delete Owner Information"
+    return render_template('deleteowner.html')
 
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
