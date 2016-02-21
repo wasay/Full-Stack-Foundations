@@ -20,6 +20,20 @@ class Shelter(Base):
     current_occupancy = Column(Integer, default=0)
     maximum_capacity = Column(Integer, default=0)
 
+    @property
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'address': self.address,
+            'city': self.city,
+            'state': self.state,
+            'zipCode': self.zipCode,
+            'website': self.website,
+            'current_occupancy': self.current_occupancy,
+            'maximum_capacity': self.maximum_capacity,
+        }
+
 
 class Puppy(Base):
     __tablename__ = 'puppy'
@@ -34,20 +48,49 @@ class Puppy(Base):
     shelter_id = Column(Integer, ForeignKey('shelter.id'))
     shelter = relationship(Shelter)
 
+    @property
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'gender': self.gender,
+            'dateOfBirth': self.dateOfBirth,
+            'picture': self.picture,
+            'weight': self.weight,
+            'description': self.description,
+            'special_needs': self.special_needs,
+            'shelter_id': self.shelter_id,
+        }
 
-class Adoptors(Base):
-    __tablename__ = 'adoptors'
+
+class Owners(Base):
+    __tablename__ = 'owners'
     id = Column(Integer, primary_key=True)
     name = Column(String(250), nullable=False)
 
+    @property
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+        }
 
-class PuppyAdoptors(Base):
+
+class PuppyOwners(Base):
     __tablename__ = 'puppy_adoptors'
     id = Column(Integer, primary_key=True)
     puppy_id = Column(Integer, ForeignKey('puppy.id'))
     puppy = relationship(Puppy)
-    adoptor_id = Column(Integer, ForeignKey('adoptors.id'))
-    adoptors = relationship(Adoptors)
+    owner_id = Column(Integer, ForeignKey('owners.id'))
+    owners = relationship(Owners)
+
+    @property
+    def serialize(self):
+        return {
+            'id': self.id,
+            'puppy_id': self.puppy_id,
+            'owner_id': self.owner_id,
+        }
 
 
 class ShelterPuppies(Base):
@@ -58,13 +101,15 @@ class ShelterPuppies(Base):
     puppy_id = Column(Integer, ForeignKey('puppy.id'))
     puppy = relationship(Puppy)
 
+    @property
+    def serialize(self):
+        return {
+            'id': self.id,
+            'shelter_id': self.shelter_id,
+            'puppy_id': self.puppy_id,
+        }
 
-# Create an engine that stores data in the local directory's
-# puppyshelter.db file.
 engine = create_engine('sqlite:///puppyshelter.db')
 
-Base.metadata.create_all(engine)
 
-# print "=============================================="
-# print "Puppies class file loaded"
-# print "=============================================="
+Base.metadata.create_all(engine)
