@@ -1,3 +1,4 @@
+{% import 'pagination.html' as macros %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,8 +36,8 @@
 <div id="header">
 	<section class="section">
 		<div class="container">
-			<a class="btn btn-primary" style="float:right;margin-top:20px;" href="{{url_for('newRestaurant') }}"
-							role="button">Create New Restaurant</a>
+			<a class="btn btn-primary" style="float:right;margin-top:20px;" href="{{url_for('newPuppy') }}"
+							role="button">Add New Puppy</a>
 			<h1>PAWs -- The Puppy Adoption Website</h1>
 		</div>
 	</section>
@@ -57,37 +58,40 @@
 			{% endif %}
 			{% endwith %}
 
+			{{ macros.render_pagination(pagination, endpoint) }}
 			<!-- Table -->
 			<table class="table table-striped">
 				<thead>
 				<tr>
 					<th>
-						Restaurant Name
+						Puppy Name
 					</th>
-					<th></th>
+					<th>Is Adopted</th>
 					<th></th>
 					<th></th>
 				</tr>
 				</thead>
 				<tbody>
-				{% for i in restaurants %}
+				{% for i in puppies %}
 				<tr>
 					<td>
 						{{i.name}}
 					</td>
 					<td>
-						<a href="{{url_for('showMenu',restaurant_id = i.id)}}">Menu Items</a>
+						Yes/No
 					</td>
 					<td>
-						<a href="{{url_for('editRestaurant',restaurant_id = i.id)}}">Edit</a>
+						<a href="{{url_for('editPuppy', puppy_id = i.id)}}">Edit</a>
 					</td>
 					<td>
-						<a href="{{url_for('deleteRestaurant', restaurant_id = i.id)}}">Delete</a>
+						<a href="{{url_for('deletePuppy', puppy_id = i.id)}}">Delete</a>
 					</td>
 				</tr>
 				{% endfor %}
 				</tbody>
 			</table>
+			{{ macros.render_pagination(pagination, endpoint) }}
+
 		</div>
 	</section>
 </div>
