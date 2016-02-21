@@ -1,11 +1,14 @@
-{% import 'pagination.html' as macros %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Puppies</title>
+	<title>New Puppy</title>
+
+	<!-- jquery-ui -->
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+
 	<!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
 		integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -14,11 +17,35 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
 		integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
 
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+
+    <!-- jquery-ui -->
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
 	<!-- Latest compiled and minified JavaScript -->
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
 		integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
 		crossorigin="anonymous"></script>
-	<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+
+	<script>
+	$(function () {
+		var debug = false;
+		var debug_string = '';
+		try {
+			if (debug) {
+				alert('$(function())');
+			}
+			$("#dateOfBirth").datepicker();
+		}
+		catch (ex)
+		{
+			alert('Init: ' + ex);
+		}
+	});
+	</script>
 </head>
 <body>
 <div class="container">
@@ -53,62 +80,61 @@
 <div id="header">
 	<section class="section">
 		<div class="container">
-			<a class="btn btn-primary" style="float:right;margin-top:20px;" href="{{url_for('newPuppy') }}"
-							role="button">Add New Puppy</a>
-			<h1>PAWs -- The Puppy Adoption Website</h1>
+			<ol class="breadcrumb">
+				<li><a href="{{url_for('showPuppies')}}">Puppies</a></li>
+				<li class="active">New Puppy</li>
+			</ol>
+			<h1>New Puppy</h1>
 		</div>
 	</section>
 </div>
 <div id="content">
 	<section class="section">
 		<div class="container">
-			{% with messages = get_flashed_messages() %}
-			{% if messages %}
+			<form action="{{url_for('newPuppy')}}" method='POST'>
+
+				<dl>
+					<dt>Name:</dt>
+					<dd><input type='text' size='50' name='name' placeholder='New Puppy Name'></dd>
+				</dl>
+				<dl>
+					<dt>Gender:</dt>
+					<dd>
+						<select name="gender">
+							<option value="">Select</option>
+							<option value="female">Female</option>
+							<option value="male">Male</option>
+						</select>
+					</dd>
+				</dl>
+				<dl>
+					<dt>Date of Birth:</dt>
+					<dd><input type='text' size='50' name='dateOfBirth' id='dateOfBirth' placeholder='mm/dd/yyyy'></dd>
+				</dl>
+				<dl>
+					<dt>Picture:</dt>
+					<dd><input type='text' size='50' name='picture' placeholder='http://www.puppyphoto.com/sample.png'></dd>
+				</dl>
+				<dl>
+					<dt>Weight:</dt>
+					<dd><input type='text' size='50' name='weight' placeholder='4'> lb</dd>
+				</dl>
+				<dl>
+					<dt>Shelter:</dt>
+					<dd>
+						<select name="shelter_id">
+							<option value="">Select Optional</option>
+							<option value="1">Shelter Name</option>
+						</select>
+					</dd>
+				</dl>
+
+				<input type='submit' value='Create'>
+				&nbsp;<input type="button" value="Cancel"
+				onclick="window.location='{{ url_for('showPuppies') }}'">
+			</form>
 			<br>
-			<div class="alert alert-info" role="alert">
-				<ul>
-					{% for message in messages %}
-					<li><strong> {{ message }} </strong></li>
-					{% endfor %}
-				</ul>
-			</div>
-			{% endif %}
-			{% endwith %}
-
-			{{ macros.render_pagination(pagination, endpoint) }}
-			<!-- Table -->
-			<table class="table table-striped">
-				<thead>
-				<tr>
-					<th>
-						Puppy Name
-					</th>
-					<th>Is Adopted</th>
-					<th></th>
-					<th></th>
-				</tr>
-				</thead>
-				<tbody>
-				{% for i in results %}
-				<tr>
-					<td>
-						{{i.name}}
-					</td>
-					<td>
-						Yes/No
-					</td>
-					<td>
-						<a href="{{url_for('editPuppy', puppy_id = i.id)}}">Edit</a>
-					</td>
-					<td>
-						<a href="{{url_for('deletePuppy', puppy_id = i.id)}}">Delete</a>
-					</td>
-				</tr>
-				{% endfor %}
-				</tbody>
-			</table>
-			{{ macros.render_pagination(pagination, endpoint) }}
-
+			<br>
 		</div>
 	</section>
 </div>

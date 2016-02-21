@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Edit Puppy</title>
+
+	<!-- jquery-ui -->
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+		integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
+		integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+
+    <!-- jquery-ui -->
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+		integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
+		crossorigin="anonymous"></script>
+
+	<script>
+	$(function () {
+		var debug = false;
+		var debug_string = '';
+		try {
+			if (debug) {
+				alert('$(function())');
+			}
+			$("#dateOfBirth").datepicker();
+		}
+		catch (ex)
+		{
+			alert('Init: ' + ex);
+		}
+	});
+	</script>
+</head>
+<body>
+<div class="container">
+	<nav class="navbar navbar-default">
+		<div class="container-fluid">
+			<!-- Brand and toggle get grouped for better mobile display -->
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="/">PAWs -- The Puppy Adoption Website</a>
+			</div>
+
+			<!-- Collect the nav links, forms, and other content for toggling -->
+			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+				<ul class="nav navbar-nav">
+					<li class="active"><a href="{{ url_for('showPuppies', page=1) }}">Puppies</a></li>
+					<li>
+						<a href="{{ url_for('showShelters', page=1) }}">Shelters</a>
+					</li>
+					<li>
+						<a href="{{ url_for('showOwners', page=1) }}">Owners</a>
+					</li>
+				</ul>
+			</div><!-- /.navbar-collapse -->
+		</div><!-- /.container-fluid -->
+	</nav>
+</div>
+<div id="header">
+	<section class="section">
+		<div class="container">
+			<ol class="breadcrumb">
+				<li><a href="{{url_for('showPuppies')}}">Puppies</a></li>
+				<li class="active">Edit Puppy</li>
+			</ol>
+			<h1>Edit Puppy</h1>
+		</div>
+	</section>
+</div>
+<div id="content">
+	<section class="section">
+		<div class="container">
+			<form action="{{url_for('editPuppy', puppy_id = puppy_id)}}" method='POST'>
+
+				<dl>
+					<dt>Name:</dt>
+					<dd><input type='text' size='50' name='name' value='{{item.name}}' placeholder='{{item.name}}'></dd>
+				</dl>
+				<dl>
+					<dt>Gender:</dt>
+					<dd>
+						<select name="gender">
+							<option value="">Select</option>
+							<option value="female" {% if item.gender == 'female' %}selected=selected{%endif%}>Female</option>
+							<option value="male" {% if item.gender == 'male' %}selected=selected{%endif%}>Male</option>
+						</select>
+					</dd>
+				</dl>
+				<dl>
+					<dt>Date of Birth:</dt>
+					<dd><input type='text' size='50' name='dateOfBirth' id='dateOfBirth' value='{{item.dateOfBirth}}' placeholder='{{item.dateOfBirth}}'></dd>
+				</dl>
+				<dl>
+					<dt>Picture:</dt>
+					<dd><input type='text' size='50' name='picture' value='{{item.picture}}' placeholder='{{item.picture}}'></dd>
+				</dl>
+				<dl>
+					<dt>Weight:</dt>
+					<dd><input type='text' size='50' name='weight' value="{{item.weight}}" placeholder='{{item.weight}}'> lb</dd>
+				</dl>
+				<dl>
+					<dt>Shelter:</dt>
+					<dd>
+						<select name="shelter_id">
+							<option value="">Select Optional</option>
+							<option value="1" {% if item.shelter_id == 1 %}selected=selected{%endif%}>The Shelter Name</option>
+						</select>
+					</dd>
+				</dl>
+
+				<input type='submit' value='Update'>
+				&nbsp;<input type="button" value="Cancel"
+				onclick="window.location='{{ url_for('showPuppies') }}'">
+			</form>
+			<br>
+			<br>
+		</div>
+	</section>
+</div>
+</body>
+
+</html>

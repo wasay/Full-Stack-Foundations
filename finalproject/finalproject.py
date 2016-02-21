@@ -51,10 +51,14 @@ def showRestaurants():
 @app.route('/restaurant/new', methods=['GET', 'POST'])
 def newRestaurant():
     if request.method == 'POST':
-        newItem = Restaurant(name=request.form['name'])
-        session.add(newItem)
-        session.commit()
-        flash("New Restaurant Created")
+        if request.form['name']:
+            newItem = Restaurant(name=request.form['name'])
+
+            session.add(newItem)
+            session.commit()
+            flash("New Restaurant Created")
+        else:
+            flash("New Restaurant Not Created")
         return redirect(url_for('showRestaurants'))
     else:
         return render_template('newrestaurant.html')
@@ -76,7 +80,6 @@ def editRestaurant(restaurant_id):
     else:
         return render_template(
             'editrestaurant.html', restaurant_id=restaurant_id, item=restaurant)
-    return output
 
 @app.route('/restaurant/<int:restaurant_id>/delete', methods=['GET', 'POST'])
 def deleteRestaurant(restaurant_id):

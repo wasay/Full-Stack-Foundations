@@ -5,7 +5,7 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Puppies</title>
+	<title>Shelters</title>
 	<!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
 		integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -38,8 +38,8 @@
 			<!-- Collect the nav links, forms, and other content for toggling -->
 			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 				<ul class="nav navbar-nav">
-					<li class="active"><a href="{{ url_for('showPuppies', page=1) }}">Puppies</a></li>
-					<li>
+					<li><a href="{{ url_for('showPuppies', page=1) }}">Puppies</a></li>
+					<li class="active">
 						<a href="{{ url_for('showShelters', page=1) }}">Shelters</a>
 					</li>
 					<li>
@@ -53,9 +53,9 @@
 <div id="header">
 	<section class="section">
 		<div class="container">
-			<a class="btn btn-primary" style="float:right;margin-top:20px;" href="{{url_for('newPuppy') }}"
-							role="button">Add New Puppy</a>
-			<h1>PAWs -- The Puppy Adoption Website</h1>
+			<a class="btn btn-primary" style="float:right;margin-top:20px;" href="{{url_for('newShelter') }}"
+							role="button">Add New Shelter</a>
+			<h1>Shelters</h1>
 		</div>
 	</section>
 </div>
@@ -75,15 +75,17 @@
 			{% endif %}
 			{% endwith %}
 
-			{{ macros.render_pagination(pagination, endpoint) }}
+			{% if pagination %}
+				{{ macros.render_pagination(pagination, endpoint) }}
+			{% endif %}
 			<!-- Table -->
 			<table class="table table-striped">
 				<thead>
 				<tr>
 					<th>
-						Puppy Name
+						Shelter Name
 					</th>
-					<th>Is Adopted</th>
+					<th>Is Accepting</th>
 					<th></th>
 					<th></th>
 				</tr>
@@ -98,16 +100,18 @@
 						Yes/No
 					</td>
 					<td>
-						<a href="{{url_for('editPuppy', puppy_id = i.id)}}">Edit</a>
+						<a href="{{url_for('editShelter', shelter_id = i.id)}}">Edit</a>
 					</td>
 					<td>
-						<a href="{{url_for('deletePuppy', puppy_id = i.id)}}">Delete</a>
+						<a href="{{url_for('deleteShelter', shelter_id = i.id)}}">Delete</a>
 					</td>
 				</tr>
 				{% endfor %}
 				</tbody>
 			</table>
-			{{ macros.render_pagination(pagination, endpoint) }}
+			{% if pagination %}
+				{{ macros.render_pagination(pagination, endpoint) }}
+			{% endif %}
 
 		</div>
 	</section>
