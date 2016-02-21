@@ -51,6 +51,7 @@
 		<div class="container">
 			{% with messages = get_flashed_messages() %}
 			{% if messages %}
+			<br>
 			<div class="alert alert-info" role="alert">
 				<ul>
 					{% for message in messages %}
@@ -66,9 +67,6 @@
 				<thead>
 				<tr>
 					<th>
-						#
-					</th>
-					<th>
 						Menu Item Name
 					</th>
 					<th>Price</th>
@@ -79,7 +77,6 @@
 				<tbody>
 				{% for i in items %}
 				<tr>
-					<th scope="row">{{i.id}}</th>
 					<td>
 						{{i.name}}
 					</td>

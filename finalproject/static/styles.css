@@ -70,3 +70,7 @@ a {
 	background: #cee5F5;
 }
 */
+
+label{
+	font-weight:unset;
+}
