@@ -30,8 +30,6 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 try:
-    print ('Get count of puppies and shelters:')
-    print ('------------------------------------------------')
 
     shelters = session.query(Shelter.id, Shelter.name,
                              Shelter.current_occupancy)
@@ -40,13 +38,8 @@ try:
     puppies_per_shelter_count = puppies.count() / shelters.count()
     puppies_per_shelter_count = round(puppies_per_shelter_count)
 
-    print ('Unassign all puppies from Shelter')
-    print ('------------------------------------------------')
     session.query(ShelterPuppies).delete()
 
-    print ('Update all shelters maximum_capacity to %s')
-    % (puppies_per_shelter_count)
-    print ('------------------------------------------------')
     session.query(Shelter).\
         update({Shelter.current_occupancy: 0,
                 Shelter.maximum_capacity: puppies_per_shelter_count},
@@ -76,11 +69,6 @@ try:
                 update({Shelter.current_occupancy: shelter_occupancy+1},
                        synchronize_session=False)
             session.commit()
-
-            print ('Puppy Id: %s - %s is checked in at %s')
-            % (puppy.id, puppy.name, shelter_name)
-            print ('------------------------------------------------')
-            print ('')
 
 except:
     session.rollback()

@@ -288,8 +288,68 @@ def checkinShelter(shelter_id):
         return redirect(url_for('showShelters'))
     else:
         puppies = session.query(Puppies).order_by('name')
+
         return render_template(
             'checkinshelter.html', shelter_id=shelter_id, item=shelter, puppies=puppies)
+
+
+@app.route('/shelters/evenDistribution', methods=['GET', 'POST'])
+def evenlyDistributePuppiesAcrossShelters():
+
+    if request.method == 'POST':
+        try:
+
+            shelters = session.query(Shelters.id, Shelters.name,
+                                     Shelters.current_occupancy)
+            puppies = session.query(Puppies.id, Puppies.name)
+
+            puppies_per_shelter_count = puppies.count() / shelters.count()
+            puppies_per_shelter_count = round(puppies_per_shelter_count)
+
+            session.query(ShelterPuppies).delete()
+
+            session.query(Shelters).\
+                update({Shelters.current_occupancy: 0,
+                        Shelters.maximum_capacity: puppies_per_shelter_count},
+                       synchronize_session=False)
+            session.commit()
+
+            for puppy in puppies:
+
+                accepting_shelter = session.query(Shelters.id, Shelters.name,
+                                                  Shelters.current_occupancy).\
+                    filter(Shelters.current_occupancy < puppies_per_shelter_count).\
+                    limit(1)
+
+                if (accepting_shelter.count() > 0):
+
+                    shelter_id = accepting_shelter[0].id
+                    shelter_name = accepting_shelter[0].name
+                    shelter_occupancy = accepting_shelter[0].current_occupancy
+
+                    add = ShelterPuppies(id=None,
+                                         shelter_id=shelter_id,
+                                         puppy_id=puppy.id)
+                    session.add(add)
+                    session.commit()
+
+                    session.query(Shelters.id).filter(Shelters.id == shelter_id).\
+                        update({Shelters.current_occupancy: shelter_occupancy+1},
+                               synchronize_session=False)
+                    session.commit()
+
+            flash("Evenly distributed Puppies across Shelters")
+            return redirect(url_for('showShelters'))
+
+        except:
+            session.rollback()
+            flash("Error unable to evenly distributed Puppies across Shelters")
+            return redirect(url_for('showShelters'))
+
+    else:
+
+        return render_template(
+            'evendistributioninshelters.html')
 
 @app.route('/owners')
 @app.route('/owners/')
@@ -308,6 +368,7 @@ def showOwners(page=1):
         results = session.query(Owners).order_by('name').limit(PER_PAGE).offset(PER_PAGE*(page-1))
 
     if not results and page != 1:
+        # flash("Error")
         abort(404)
     pagination = Pagination(all_results, page, PER_PAGE, all_count, None)
 

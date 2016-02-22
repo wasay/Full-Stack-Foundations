@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Check-In Shelter</title>
+	<title>Evenly distribute Puppies across Shelters</title>
 
 	<!-- jquery-ui -->
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
@@ -29,7 +29,6 @@
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
 		integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
 		crossorigin="anonymous"></script>
-
 </head>
 <body>
 <div class="container">
@@ -66,35 +65,23 @@
 		<div class="container">
 			<ol class="breadcrumb">
 				<li><a href="{{url_for('showShelters')}}">Shelters</a></li>
-				<li class="active">Check-In Shelter</li>
+				<li class="active">Evenly distribute Puppies across Shelters</li>
 			</ol>
-			<h1>Check-In Shelter - {{item.name}}</h1>
+			<h1>Evenly distribute Puppies across Shelters</h1>
 		</div>
 	</section>
 </div>
 <div id="content">
 	<section class="section">
 		<div class="container">
-			<form action="{{url_for('checkinShelter', shelter_id=shelter_id)}}" method='POST'>
+			<form action="{{ url_for('evenlyDistributePuppiesAcrossShelters') }}"
+				method='post'>
+				<p>Are you sure you want to run this rule?</p>
 
-				<dl>
-					<dt>Puppies to Check-In:</dt>
-					<dd>
-						<select name="puppy_ids" multiple size=10 style="width:250px;">
-							<option value="">Select Optional</option>
-							{% for puppy in puppies %}
-								<option value="{{puppy.id}}" {% if puppy.shelter_id == item.id %}selected=selected{%endif%}>{{puppy.name}}</option>
-							{% endfor %}
-						</select>
-					</dd>
-				</dl>
-
-				<input type='submit' value='Update'>
+				<input type='submit' value='Yes'>
 				&nbsp;<input type="button" value="Cancel"
 				onclick="window.location='{{ url_for('showShelters') }}'">
 			</form>
-			<br>
-			<br>
 		</div>
 	</section>
 </div>

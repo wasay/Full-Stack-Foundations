@@ -53,8 +53,12 @@
 <div id="header">
 	<section class="section">
 		<div class="container">
-			<a class="btn btn-primary" style="float:right;margin-top:20px;" href="{{url_for('newShelter') }}"
-							role="button">Add New Shelter</a>
+			<div style="float:right;margin-top:20px;">
+				<a class="btn btn-primary" href="{{url_for('newShelter') }}"
+					role="button">Add New Shelter</a>&nbsp;&nbsp;
+				<a class="btn btn-primary" href="{{url_for('evenlyDistributePuppiesAcrossShelters') }}"
+					role="button">Evenly Distribute Puppies across Shelters</a>
+			</div>
 			<h1>Shelters</h1>
 		</div>
 	</section>
@@ -83,6 +87,7 @@
 				<thead>
 				<tr>
 					<th>Shelter Name</th>
+					<th>Capacity</th>
 					<th>Is Accepting</th>
 					<th></th>
 					<th></th>
@@ -95,8 +100,12 @@
 						{{i.name}}
 					</td>
 					<td>
+						{{i.maximum_capacity}}
+					</td>
+					<td>
 						{% if i.maximum_capacity > i.current_occupancy %}
 							Yes - <a href="{{url_for('checkinShelter', shelter_id = i.id)}}">Check-In</a>
+							<span class="badge">{{i.maximum_capacity - i.current_occupancy}}</span>
 						{% else %}
 							No
 						{% endif %}
