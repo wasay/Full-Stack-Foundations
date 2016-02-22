@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from database_setup import Shelters, Base, Puppies, engine
+from models import Shelters, Base, Puppies, engine
 # from flask.ext.sqlalchemy import SQLAlchemy
 
 from random import randint

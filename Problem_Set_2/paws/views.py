@@ -4,10 +4,9 @@ from sqlalchemy.orm import sessionmaker
 
 from . import app
 
-from database_setup import Base, engine, Shelters, Puppies, Owners, PuppyOwners, ShelterPuppies
+from models import Base, engine, Shelters, Puppies, Owners, PuppyOwners, ShelterPuppies
 from flask.ext.sqlalchemy import Pagination
 import datetime
-
 
 Base.metadata.bind = engine
 
@@ -17,13 +16,11 @@ session = DBSession()
 PER_PAGE = 20
 
 @app.route('/')
-@app.route('/puppies')
-@app.route('/puppies/')
-@app.route('/puppies/page')
-@app.route('/puppies/page/')
-@app.route('/puppies/<int:page>/')
+def index():
+    return render_template('index.html')
+
 @app.route('/puppies/page/<int:page>/')
-def showPuppies(page=1):
+def showPuppies(page):
 
     all_results = session.query(Puppies).order_by('name')
     all_count = all_results.count()
@@ -69,7 +66,7 @@ def newPuppy():
             flash("New Puppy Created")
         else:
             flash("New Puppy Not Created")
-        return redirect(url_for('showPuppies'))
+        return redirect(url_for('showPuppies', page=1))
     else:
         shelters = session.query(Shelters).order_by('name')
         return render_template('newpuppy.html', shelters=shelters)
@@ -87,7 +84,7 @@ def editPuppy(puppy_id):
             flash("Puppy Successfully Edited")
         else:
             flash("Puppy Not Edited")
-        return redirect(url_for('showPuppies'))
+        return redirect(url_for('showPuppies', page=1))
     else:
         shelters = session.query(Shelters).order_by('name')
         return render_template(
@@ -104,13 +101,13 @@ def deletePuppy(puppy_id):
             session.delete(puppy)
             session.commit()
             flash("Puppy Successfully Deleted")
-            return redirect(url_for('showPuppies'))
+            return redirect(url_for('showPuppies', page=1))
         else:
             return render_template(
                 'deletepuppy.html', item=puppy)
     else:
         flash("Unable to locate Puppy")
-        return redirect(url_for('showPuppies'))
+        return redirect(url_for('showPuppies', page=1))
 
 @app.route('/puppy/<int:puppy_id>/view')
 def viewPuppy(puppy_id):
@@ -152,7 +149,7 @@ def adoptPuppy(puppy_id):
                 session.commit()
 
             flash("Puppy Successfully Adopted by Owner")
-            return redirect(url_for('showPuppies'))
+            return redirect(url_for('showPuppies', page=1))
         else:
             owners = session.query(Owners).order_by('name')
             puppy_owners = session.query(PuppyOwners)
@@ -160,16 +157,11 @@ def adoptPuppy(puppy_id):
                 'adoptpuppy.html', puppy_id=puppy_id, item=puppy, owners=owners, puppy_owners=puppy_owners)
     else:
         flash("Unable to locate Puppy")
-        return redirect(url_for('showPuppies'))
+        return redirect(url_for('showPuppies', page=1))
 
 
-@app.route('/shelters')
-@app.route('/shelters/')
-@app.route('/shelters/page')
-@app.route('/shelters/page/')
-@app.route('/shelters/<int:page>/')
 @app.route('/shelters/page/<int:page>/')
-def showShelters(page=1):
+def showShelters(page):
 
     all_results = session.query(Shelters).order_by('name')
     all_count = all_results.count()
@@ -352,13 +344,9 @@ def evenlyDistributePuppiesAcrossShelters():
         return render_template(
             'evendistributioninshelters.html')
 
-@app.route('/owners')
-@app.route('/owners/')
-@app.route('/owners/page')
-@app.route('/owners/page/')
-@app.route('/owners/<int:page>/')
+
 @app.route('/owners/page/<int:page>/')
-def showOwners(page=1):
+def showOwners(page):
 
     all_results = session.query(Owners).order_by('name')
     all_count = all_results.count()
@@ -433,3 +421,15 @@ def deleteOwner(owner_id):
     else:
         flash("Unable to locate Owner")
         return redirect(url_for('showOwners'))
+
+def url_for_pagination(endpoint, page):
+    page_url = ('%s, page=%s') % (endpoint, page)
+    return url_for(page_url)
+
+def url_for_other_page(page):
+    args = request.view_args.copy()
+    args['page'] = page
+    return url_for(request.endpoint, **args)
+
+app.jinja_env.globals['url_for_other_page'] = url_for_other_page
+app.jinja_env.globals['url_for_pagination'] = url_for_pagination

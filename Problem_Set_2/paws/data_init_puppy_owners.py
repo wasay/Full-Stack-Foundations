@@ -4,7 +4,7 @@ from sqlalchemy import Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from database_setup import Base, engine, Puppies, Owners, PuppyOwners
+from models import Base, engine, Puppies, Owners, PuppyOwners
 # from flask.ext.sqlalchemy import SQLAlchemy
 
 from random import randint

@@ -1,11 +1,14 @@
-{% import 'pagination.html' as macros %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Puppies</title>
+	<title>Welcome to PAWS website</title>
+
+	<!-- jquery-ui -->
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+
 	<!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
 		integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -14,11 +17,18 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
 		integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
 
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+
+    <!-- jquery-ui -->
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
 	<!-- Latest compiled and minified JavaScript -->
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
 		integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
 		crossorigin="anonymous"></script>
-	<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
 <div class="container">
@@ -38,7 +48,7 @@
 			<!-- Collect the nav links, forms, and other content for toggling -->
 			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 				<ul class="nav navbar-nav">
-					<li class="active"><a href="{{ url_for('showPuppies', page=1) }}">Puppies</a></li>
+					<li><a href="{{ url_for('showPuppies', page=1) }}">Puppies</a></li>
 					<li>
 						<a href="{{ url_for('showShelters', page=1) }}">Shelters</a>
 					</li>
@@ -53,74 +63,32 @@
 <div id="header">
 	<section class="section">
 		<div class="container">
-			<a class="btn btn-primary" style="float:right;margin-top:20px;" href="{{url_for('newPuppy') }}"
-							role="button">Add New Puppy</a>
-			<h1>PAWs -- The Puppy Adoption Website</h1>
+			<h1>Welcome to PAWS website</h1>
 		</div>
 	</section>
 </div>
 <div id="content">
 	<section class="section">
 		<div class="container">
-			{% with messages = get_flashed_messages() %}
-			{% if messages %}
 			<br>
-			<div class="alert alert-info" role="alert">
-				<ul>
-					{% for message in messages %}
-					<li><strong> {{ message }} </strong></li>
-					{% endfor %}
-				</ul>
-			</div>
-			{% endif %}
-			{% endwith %}
-
-			{% if pagination %}
-				{{ macros.render_pagination(pagination) }}
-			{% endif %}
-			<!-- Table -->
-			<table class="table table-striped">
-				<thead>
-				<tr>
-					<th>
-						Puppy Name
-					</th>
-					<th>Is Adopted</th>
-					<th>View Profile</th>
-					<th></th>
-					<th></th>
-				</tr>
-				</thead>
-				<tbody>
-				{% for i in results %}
-				<tr>
-					<td>
-						{{i.name}}
-					</td>
-					<td>
-						{% if i.shelter_id == None %}
-							Yes
-						{% else %}
-							No
-						{% endif %}
-					</td>
-					<td>
-						<a href="{{url_for('viewPuppy', puppy_id = i.id)}}">View Profile</a>
-					</td>
-					<td>
-						<a href="{{url_for('editPuppy', puppy_id = i.id)}}">Edit</a>
-					</td>
-					<td>
-						<a href="{{url_for('deletePuppy', puppy_id = i.id)}}">Delete</a>
-					</td>
-				</tr>
-				{% endfor %}
-				</tbody>
-			</table>
-			{% if pagination %}
-				{{ macros.render_pagination(pagination) }}
-			{% endif %}
-
+			<br>
+			<ul>
+				<li>
+					<b><a href="{{ url_for('showPuppies', page=1) }}">Puppies</a></b><br>
+					Maintain Puppies, View Puppy Profile, and allow owners to adopt a puppy.<br>
+					<br>
+				</li>
+				<li>
+					<b><a href="{{ url_for('showShelters', page=1) }}">Shelters</a></b><br>
+					Maintain Shelters, Check-In a puppy, and evenly distribute puppies across shelters.<br>
+					<br>
+				</li>
+				<li>
+					<b><a href="{{ url_for('showOwners', page=1) }}">Owners</a></b><br>
+					Maintain Owners.<br>
+					<br>
+				</li>
+			</ul>
 		</div>
 	</section>
 </div>
