@@ -1,13 +1,14 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from . import app
+
 from database_setup import Base, engine, Shelters, Puppies, Owners, PuppyOwners, ShelterPuppies
 from flask.ext.sqlalchemy import Pagination
 import datetime
 
-app = Flask(__name__)
 
-engine = create_engine('sqlite:///puppyshelter.db')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -432,8 +433,3 @@ def deleteOwner(owner_id):
     else:
         flash("Unable to locate Owner")
         return redirect(url_for('showOwners'))
-
-if __name__ == '__main__':
-    app.secret_key = 'super_secret_key'
-    app.debug = True
-    app.run(host = '0.0.0.0', port = 5000)

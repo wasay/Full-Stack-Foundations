@@ -5,6 +5,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 
+from . import app
+
 Base = declarative_base()
 
 
@@ -109,6 +111,6 @@ class ShelterPuppies(Base):
             'puppy_id': self.puppy_id,
         }
 
-engine = create_engine('sqlite:///puppyshelter.db')
+engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
 
 Base.metadata.create_all(engine)

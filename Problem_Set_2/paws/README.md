@@ -1,7 +1,8 @@
 # Full-Stack-Foundations
 Solution Code to Full Stack Foundations (ud088)
 
-# Notes on how to run Problem Set 1
+# Notes on how to run Problem Set 2
+# This paws application is the folder "Problem_Set_2" renamed to paws
 
 python main.py
 python puppypopulator.py
