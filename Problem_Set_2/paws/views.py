@@ -1,10 +1,14 @@
+from . import app, data
+
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from . import app
-
 from models import Base, engine, Shelters, Puppies, Owners, PuppyOwners, ShelterPuppies
+
+from forms import PuppyForm
+from flask import request
+
 from flask.ext.sqlalchemy import Pagination
 import datetime
 
@@ -41,35 +45,38 @@ def showPuppies(page):
 
 @app.route('/puppy/new', methods=['GET', 'POST'])
 def newPuppy():
-    if request.method == 'POST':
-        if request.form['name']:
 
-            name = request.form['name']
-            gender = request.form['gender']
-            dateOfBirth = request.form['dateOfBirth']
-            picture = request.form['picture']
-            weight = request.form['weight']
-            shelter_id = request.form['shelter_id']
+    form = PuppyForm()
+    form.shelter_id.choices = [(0, 'Select')]
+    form.shelter_id.choices += [(shelter.id, shelter.name) for shelter in session.query(Shelters).order_by('name')]
+    print form.errors
 
-            day,month,year = dateOfBirth.split('/')
-            dateOfBirth = datetime.date(int(year),int(month),int(day))
 
-            newItem = Puppies(name=name,
-                gender=gender,
-                dateOfBirth=dateOfBirth,
-                picture=picture,
-                weight=weight,
-                shelter_id=shelter_id)
 
-            session.add(newItem)
-            session.commit()
-            flash("New Puppy Created")
-        else:
-            flash("New Puppy Not Created")
+    if form.validate_on_submit():
+        name = form.name.data
+        gender = form.gender.data
+        dateOfBirth = form.dateOfBirth.data
+        picture = form.picture.data
+        weight = form.weight.data
+        shelter_id = form.shelter_id.data
+
+        day,month,year = dateOfBirth.split('/')
+        dateOfBirth = datetime.date(int(year),int(month),int(day))
+
+        newItem = Puppies(name=name,
+            gender=gender,
+            dateOfBirth=dateOfBirth,
+            picture=picture,
+            weight=weight,
+            shelter_id=shelter_id)
+
+        session.add(newItem)
+        session.commit()
+        flash("New Puppy Created")
         return redirect(url_for('showPuppies', page=1))
     else:
-        shelters = session.query(Shelters).order_by('name')
-        return render_template('newpuppy.html', shelters=shelters)
+        return render_template('newpuppy.html', form=form)
 
 @app.route('/puppy/<int:puppy_id>/edit', methods=['GET', 'POST'])
 def editPuppy(puppy_id):

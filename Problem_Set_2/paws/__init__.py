@@ -12,4 +12,6 @@ app.config.from_pyfile('config.py')
 # Variables defined here will override those in the default configuration
 # app.config.from_envvar('APP_CONFIG_FILE')
 
+#import paws.data
+import paws.forms
 import paws.views

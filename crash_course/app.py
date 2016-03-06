@@ -60,3 +60,5 @@ class LoginForm(Form):
     password = PasswordField('Password')
 
 form = LoginForm()
+
+{{ form.csrf_token }}

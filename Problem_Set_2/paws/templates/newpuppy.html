@@ -38,7 +38,9 @@
 			if (debug) {
 				alert('$(function())');
 			}
-			$("#dateOfBirth").datepicker();
+			$("#dateOfBirth").datepicker({
+				"dateFormat": "mm/dd/yy"
+			});
 		}
 		catch (ex)
 		{
@@ -81,7 +83,7 @@
 	<section class="section">
 		<div class="container">
 			<ol class="breadcrumb">
-				<li><a href="{{url_for('showPuppies')}}">Puppies</a></li>
+				<li><a href="{{url_for('showPuppies', page=1)}}">Puppies</a></li>
 				<li class="active">New Puppy</li>
 			</ol>
 			<h1>New Puppy</h1>
@@ -91,49 +93,59 @@
 <div id="content">
 	<section class="section">
 		<div class="container">
-			<form action="{{url_for('newPuppy')}}" method='POST'>
+			<form method="POST" action="{{url_for('newPuppy')}}">
+				{{ form.csrf_token }}
+			    <dl>
+				    <dt>{{ form.name.label }}</dt>
+				    <dd>{{ form.name() }}</dd>
+			    </dl>
+			    {% if form.name.errors %}
+				   <ul class="errors">{% for error in form.name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+			    {% endif %}
 
-				<dl>
-					<dt>Name:</dt>
-					<dd><input type='text' size='50' name='name' placeholder='New Puppy Name'></dd>
-				</dl>
-				<dl>
-					<dt>Gender:</dt>
-					<dd>
-						<select name="gender">
-							<option value="">Select</option>
-							<option value="female">Female</option>
-							<option value="male">Male</option>
-						</select>
-					</dd>
-				</dl>
-				<dl>
-					<dt>Date of Birth:</dt>
-					<dd><input type='text' size='50' name='dateOfBirth' id='dateOfBirth' placeholder='mm/dd/yyyy'></dd>
-				</dl>
-				<dl>
-					<dt>Picture:</dt>
-					<dd><input type='text' size='50' name='picture' placeholder='http://www.puppyphoto.com/sample.png'></dd>
-				</dl>
-				<dl>
-					<dt>Weight:</dt>
-					<dd><input type='text' size='50' name='weight' placeholder='4'> lb</dd>
-				</dl>
-				<dl>
-					<dt>Shelter:</dt>
-					<dd>
-						<select name="shelter_id">
-							<option value="">Select Optional</option>
-							{% for i in shelters %}
-							    <option value="{{i.id}}">{{i.name}}</option>
-							{% endfor %}
-						</select>
-					</dd>
-				</dl>
+			    <dl>
+				    <dt>{{ form.gender.label }}</dt>
+				    <dd>{{ form.gender() }}</dd>
+			    </dl>
+			    {% if form.gender.errors %}
+				   <ul class="errors">{% for error in form.gender.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+			    {% endif %}
 
-				<input type='submit' value='Create'>
+			    <dl>
+				    <dt>{{ form.dateOfBirth.label }}</dt>
+				    <dd>{{ form.dateOfBirth() }}</dd>
+			    </dl>
+			    {% if form.dateOfBirth.errors %}
+				   <ul class="errors">{% for error in form.dateOfBirth.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+			    {% endif %}
+
+			    <dl>
+				    <dt>{{ form.picture.label }}</dt>
+				    <dd>{{ form.picture() }}</dd>
+			    </dl>
+			    {% if form.picture.errors %}
+				   <ul class="errors">{% for error in form.picture.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+			    {% endif %}
+
+			    <dl>
+				    <dt>{{ form.weight.label }}</dt>
+				    <dd>{{ form.weight() }}</dd>
+			    </dl>
+			    {% if form.weight.errors %}
+				   <ul class="errors">{% for error in form.weight.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+			    {% endif %}
+
+			    <dl>
+				    <dt>{{ form.shelter_id.label }}</dt>
+				    <dd>{{ form.shelter_id() }}</dd>
+			    </dl>
+			    {% if form.shelter_id.errors %}
+				   <ul class="errors">{% for error in form.shelter_id.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+			    {% endif %}
+
+				<div><input type='submit' value='Create'>
 				&nbsp;<input type="button" value="Cancel"
-				onclick="window.location='{{ url_for('showPuppies') }}'">
+				onclick="window.location='{{ url_for('showPuppies', page=1) }}'"></div>
 			</form>
 			<br>
 			<br>

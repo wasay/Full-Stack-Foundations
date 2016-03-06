@@ -64,7 +64,7 @@
 	<section class="section">
 		<div class="container">
 			<ol class="breadcrumb">
-				<li><a href="{{url_for('showPuppies')}}">Puppies</a></li>
+				<li><a href="{{url_for('showPuppies', page=1)}}">Puppies</a></li>
 				<li class="active">Delete Puppy</li>
 			</ol>
 			<h1>Delete Puppy</h1>
@@ -80,7 +80,7 @@
 
 				<input type='submit' value='Delete'>
 				&nbsp;<input type="button" value="Cancel"
-				onclick="window.location='{{ url_for('showPuppies') }}'">
+				onclick="window.location='{{ url_for('showPuppies', page=1) }}'">
 			</form>
 		</div>
 	</section>
