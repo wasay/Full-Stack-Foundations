@@ -1,17 +1,9 @@
-# Full-Stack-Foundations
-Solution Code to Full Stack Foundations (ud088)
+To run this final project
 
-# Notes on how to run Lesson_1
+1. Navigate to the Full-Stack-Foundations/Lesson-4/Final-Project directory inside the vagrant environment
 
-# no need to run database_setup.py as that
-# will be created by lotsofmenus.py
-# python database_setup.py
+2. run database_setup.py to create the database
 
-python lotsofmenus.py
+3. run lotsofmenus.py to populate the database
 
-python crud.py
-
-# for webserver.py
-python webserver.py
-# browse
-http://localhost:8080/hello
+4. run finalproject.py and navigate to localhost:5000 in your browser

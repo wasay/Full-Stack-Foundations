@@ -11,30 +11,52 @@ from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 from flask import make_response
 
+# ######################################
+# Application
+# ######################################
+
 app = Flask(__name__)
 
+# ######################################
+# Get Config settings from config files
+# ######################################
 
-
+# ######################################
+# Amazon
+# ######################################
 AMZ_CLIENT_SECRETS = json.loads(
     open('instance/amz_client_secrets.json', 'r').read())['web']
 AMZ_CLIENT_ID = AMZ_CLIENT_SECRETS['client_id']
 AMZ_CLIENT_SECRET = AMZ_CLIENT_SECRETS['client_secret']
 AMZ_APP_ID = AMZ_CLIENT_SECRETS['app_id']
 
+# ######################################
+# Facebook
+# ######################################
 FB_CLIENT_SECRETS = json.loads(
     open('instance/fb_client_secrets.json', 'r').read())['web']
 FB_CLIENT_ID = FB_CLIENT_SECRETS['app_secret']
 FB_CLIENT_SECRET = FB_CLIENT_SECRETS['app_secret']
 FB_APP_ID = FB_CLIENT_SECRETS['app_id']
 
+# ######################################
+# Google
+# ######################################
 G_CLIENT_SECRETS = json.loads(
     open('instance/g_client_secrets.json', 'r').read())['web']
 G_CLIENT_ID = G_CLIENT_SECRETS['client_id']
 G_CLIENT_SECRET = G_CLIENT_SECRETS['client_secret']
 G_APP_ID = G_CLIENT_SECRETS['project_id']
 
+
+# ######################################
+# Application Name
+# ######################################
 APPLICATION_NAME = "Restaurant Menu App"
 
+# ######################################
+# Database path
+# ######################################
 SQLALCHEMY_DATABASE_URI = 'sqlite:///restaurantmenu.db'
 
 
@@ -45,12 +67,33 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+# ######################################
+# Show all restaurants
+# ######################################
+@app.route('/')
+@app.route('/restaurants/')
+def showRestaurants():
+    print 'login_session %s' % login_session
+    restaurants = session.query(Restaurant).order_by(asc(Restaurant.name))
+    if 'username' not in login_session:
+        return render_template('publicrestaurants.html', restaurants=restaurants)
+    else:
+        creator = getUserInfo(login_session['user_id'])
+        return render_template('restaurants.html', restaurants=restaurants, creator=creator, login_session=login_session)
+
+
+# ######################################
 # Create anti-forgery state token
+# ######################################
 def getReqState():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
                     for x in xrange(32))
     login_session['state'] = state
 
+
+# ######################################
+# Website Authentication
+# ######################################
 
 @app.route('/login')
 def showLogin():
@@ -58,27 +101,36 @@ def showLogin():
     # return "The current session state is %s" % login_session['state']
     return render_template('login.html', STATE=login_session['state'], AMZ_CLIENT_ID=AMZ_CLIENT_ID, FB_APP_ID=FB_APP_ID, G_CLIENT_ID=G_CLIENT_ID)
 
+
+@app.route('/logout')
+def showLogout():
+    getReqState()
+    # return "The current session state is %s" % login_session['state']
+
+    amzdisconnect()
+
+    fbdisconnect()
+
+    gdisconnect()
+
+    showRestaurants()
+
+# ######################################
+# Amazon Authentication
+# ######################################
+
 @app.route('/amzlogin')
 def showAmzLogin():
     getReqState()
     # return "The current session state is %s" % login_session['state']
+
     return render_template('amzlogin.html', STATE=login_session['state'], AMZ_CLIENT_ID=AMZ_CLIENT_ID)
 
 
-@app.route('/fblogin')
-def showFbLogin():
-    getReqState()
-    # return "The current session state is %s" % login_session['state']
-    return render_template('fblogin.html', STATE=login_session['state'], FB_APP_ID=FB_APP_ID)
-
-
-@app.route('/glogin')
-def showGLogin():
-    getReqState()
-    # return "The current session state is %s" % login_session['state']
-    return render_template('glogin.html', STATE=login_session['state'], G_CLIENT_ID=G_CLIENT_ID)
-
-
+# ######################################
+# Amazon Connect
+# ######################################
+# Route with Method: POST
 @app.route('/amzconnect', methods=['POST'])
 def amzconnect():
     if request.args.get('state') != login_session['state']:
@@ -150,7 +202,14 @@ def amzconnect():
     flash("Now logged in as %s in Amazon" % login_session['username'])
     return redirect(url_for('showRestaurants'))
 
+# #########################################################################
+# DISCONNECT - Revoke a current user's token and reset their login_session
+# #########################################################################
 
+# ######################################
+# Amazon Disconnect
+# ######################################
+# Route with Method: GET
 @app.route('/amzdisconnect')
 def amzdisconnect():
     amazon_id = login_session['amazon_id']
@@ -164,6 +223,20 @@ def amzdisconnect():
     return redirect(url_for('showRestaurants'))
 
 
+# ######################################
+# Facebook Authentication
+# ######################################
+@app.route('/fblogin')
+def showFbLogin():
+    getReqState()
+    # return "The current session state is %s" % login_session['state']
+    return render_template('fblogin.html', STATE=login_session['state'], FB_APP_ID=FB_APP_ID)
+
+
+# ######################################
+# Facebook Connect
+# ######################################
+# Route with Method: POST
 @app.route('/fbconnect', methods=['POST'])
 def fbconnect():
     if request.args.get('state') != login_session['state']:
@@ -229,7 +302,14 @@ def fbconnect():
     flash("Now logged in as %s in Facebook" % login_session['username'])
     return redirect(url_for('showRestaurants'))
 
+# #########################################################################
+# DISCONNECT - Revoke a current user's token and reset their login_session
+# #########################################################################
 
+# ######################################
+# Facebook Disconnect
+# ######################################
+# Route with Method: GET
 @app.route('/fbdisconnect')
 def fbdisconnect():
     facebook_id = login_session['facebook_id']
@@ -243,6 +323,20 @@ def fbdisconnect():
     return redirect(url_for('showRestaurants'))
 
 
+# ######################################
+# Google Authentication
+# ######################################
+@app.route('/glogin')
+def showGLogin():
+    getReqState()
+    # return "The current session state is %s" % login_session['state']
+    return render_template('glogin.html', STATE=login_session['state'], G_CLIENT_ID=G_CLIENT_ID)
+
+
+# ######################################
+# Google Connect
+# ######################################
+# Route with Method: POST
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
     # Validate state token
@@ -342,9 +436,14 @@ def gconnect():
     print "done!"
     return redirect(url_for('showRestaurants'))
 
-    # DISCONNECT - Revoke a current user's token and reset their login_session
+# #########################################################################
+# DISCONNECT - Revoke a current user's token and reset their login_session
+# #########################################################################
 
-
+# ######################################
+# Google Disconnect
+# ######################################
+# Route with Method: GET
 @app.route('/gdisconnect')
 def gdisconnect():
     access_token = login_session['access_token']
@@ -384,8 +483,26 @@ def gdisconnect():
 
     return redirect(url_for('glogin'))
 
-
+# ######################################
 # JSON APIs to view Restaurant Information
+# ######################################
+
+# ######################################
+# Get Restaurant's in JSON Format
+# ######################################
+# Route with Method: GET
+@app.route('/restaurants/JSON')
+def restaurantsJSON():
+    restaurants = session.query(Restaurant).all()
+    return jsonify(restaurants=[r.serialize for r in restaurants])
+
+
+# ######################################
+# Get Restaurant Menu's in JSON Format
+# ######################################
+# param (int) restaurant_id
+# param (int) menu_id
+# Route with Method: GET
 @app.route('/restaurant/<int:restaurant_id>/menu/JSON')
 def restaurantMenuJSON(restaurant_id):
     restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
@@ -394,33 +511,22 @@ def restaurantMenuJSON(restaurant_id):
     return jsonify(MenuItems=[i.serialize for i in items])
 
 
+# ######################################
+# Get Restaurant Menu Item in JSON Format
+# ######################################
+# param (int) restaurant_id
+# param (int) menu_id
+# Route with Method: GET
 @app.route('/restaurant/<int:restaurant_id>/menu/<int:menu_id>/JSON')
 def menuItemJSON(restaurant_id, menu_id):
     Menu_Item = session.query(MenuItem).filter_by(id=menu_id).one()
     return jsonify(Menu_Item=Menu_Item.serialize)
 
 
-@app.route('/restaurant/JSON')
-def restaurantsJSON():
-    restaurants = session.query(Restaurant).all()
-    return jsonify(restaurants=[r.serialize for r in restaurants])
-
-
-# Show all restaurants
-@app.route('/')
-@app.route('/restaurant/')
-def showRestaurants():
-    print 'login_session %s' % login_session
-    restaurants = session.query(Restaurant).order_by(asc(Restaurant.name))
-    if 'username' not in login_session:
-        return render_template('publicrestaurants.html', restaurants=restaurants)
-    else:
-        creator = getUserInfo(login_session['user_id'])
-        return render_template('restaurants.html', restaurants=restaurants, creator=creator)
-
+# ######################################
 # Create a new restaurant
-
-
+# ######################################
+# Route with Method: GET and POST
 @app.route('/restaurant/new/', methods=['GET', 'POST'])
 def newRestaurant():
     if 'username' not in login_session:
@@ -434,9 +540,12 @@ def newRestaurant():
     else:
         return render_template('newRestaurant.html')
 
+
+# ######################################
 # Edit a restaurant
-
-
+# ######################################
+# param (int) restaurant_id
+# Route with Method: GET and POST
 @app.route('/restaurant/<int:restaurant_id>/edit/', methods=['GET', 'POST'])
 def editRestaurant(restaurant_id):
     editedRestaurant = session.query(
@@ -456,7 +565,11 @@ def editRestaurant(restaurant_id):
         return render_template('editRestaurant.html', restaurant=editedRestaurant)
 
 
+# ######################################
 # Delete a restaurant
+# ######################################
+# param (int) restaurant_id
+# Route with Method: GET
 @app.route('/restaurant/<int:restaurant_id>/delete/', methods=['GET', 'POST'])
 def deleteRestaurant(restaurant_id):
     restaurantToDelete = session.query(
@@ -475,23 +588,31 @@ def deleteRestaurant(restaurant_id):
     else:
         return render_template('deleteRestaurant.html', restaurant=restaurantToDelete)
 
+
+# ######################################
 # Show a restaurant menu
-
-
+# ######################################
+# param (int) restaurant_id
+# Route with Method: GET
 @app.route('/restaurant/<int:restaurant_id>/')
 @app.route('/restaurant/<int:restaurant_id>/menu/')
 def showMenu(restaurant_id):
     restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
     creator = getUserInfo(restaurant.user_id)
+
     items = session.query(MenuItem).filter_by(
         restaurant_id=restaurant_id).all()
-    if 'username' not in login_session or creator is None or creator.id != login_session['user_id']:
+    if 'username' not in login_session or creator is None:
         return render_template('publicmenu.html', items=items, restaurant=restaurant)
     else:
-        return render_template('menu.html', items=items, restaurant=restaurant, creator=creator)
+        return render_template('menu.html', items=items, restaurant=restaurant, creator=creator, login_session=login_session)
 
 
+# ######################################
 # Create a new menu item
+# ######################################
+# param (int) restaurant_id
+# Route with Method: GET and POST
 @app.route('/restaurant/<int:restaurant_id>/menu/new/', methods=['GET', 'POST'])
 def newMenuItem(restaurant_id):
     if 'username' not in login_session:
@@ -511,9 +632,13 @@ def newMenuItem(restaurant_id):
     else:
         return render_template('newmenuitem.html', restaurant_id=restaurant_id)
 
+
+# ######################################
 # Edit a menu item
-
-
+# ######################################
+# param (int) restaurant_id
+# param (int) menu_id
+# Route with Method: GET and POST
 @app.route('/restaurant/<int:restaurant_id>/menu/<int:menu_id>/edit', methods=['GET', 'POST'])
 def editMenuItem(restaurant_id, menu_id):
     restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
@@ -541,7 +666,12 @@ def editMenuItem(restaurant_id, menu_id):
         return render_template('editmenuitem.html', restaurant_id=restaurant_id, menu_id=menu_id, item=editedItem)
 
 
+# ######################################
 # Delete a menu item
+# ######################################
+# param (int) restaurant_id
+# param (int) menu_id
+# Route with Method: GET and POST
 @app.route('/restaurant/<int:restaurant_id>/menu/<int:menu_id>/delete', methods=['GET', 'POST'])
 def deleteMenuItem(restaurant_id, menu_id):
     restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
@@ -561,10 +691,13 @@ def deleteMenuItem(restaurant_id, menu_id):
         return render_template('deleteMenuItem.html', item=itemToDelete)
 
 
-
+# ######################################
 # User Helper Functions
+# ######################################
 
-
+# ######################################
+# Create User from login_session
+# ######################################
 def createUser(login_session):
     newUser = User(name=login_session['username'], email=login_session[
                    'email'], picture=login_session['picture'])
@@ -574,6 +707,10 @@ def createUser(login_session):
     return user.id
 
 
+# ######################################
+# Get User Info
+# ######################################
+# param (int) user_id
 def getUserInfo(user_id):
     try:
         user = session.query(User).filter_by(id=user_id).one()
@@ -582,6 +719,10 @@ def getUserInfo(user_id):
         return None
 
 
+# ######################################
+# Get User Id
+# ######################################
+# param (string) email
 def getUserID(email):
     try:
         user = session.query(User).filter_by(email=email).one()
@@ -589,6 +730,10 @@ def getUserID(email):
     except:
         return None
 
+
+# ######################################
+# main function
+# ######################################
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
     app.debug = True

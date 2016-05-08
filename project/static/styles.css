@@ -30,6 +30,11 @@ a {
 	font-size: .75em;
 }
 
+a:hover {
+	text-decoration: underline;
+	color: #FFFFFF;
+}
+
 .pane {
 	position: absolute;
 	left: 25%;
@@ -68,3 +73,53 @@ a {
 	background: #cee5F5;
 }
 
+/* style added */
+
+.creator{}
+
+.row{}
+
+.divider{}
+
+.green{}
+
+.banner{}
+
+.menu{}
+
+.padding-none
+{
+	padding-top:0px;
+	padding-right:0px;
+	padding-bottom:0px;
+	padding-left:0px;
+	/*
+		may also be setup as
+			padding:0px;
+		OR
+			padding:0px 0px 0px 0px;
+	*/
+}
+.padding-top
+{
+	padding-top:10px;
+}
+
+.padding-bottom{
+	padding-bottom:10px;
+}
+
+.btn-default{}
+
+.btn-default .delete
+{
+	background-color:red;
+}
+
+.menu-item
+{
+}
+
+.menu-price
+{
+}
