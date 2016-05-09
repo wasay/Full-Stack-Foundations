@@ -1,22 +1,6 @@
 {% extends "main.html" %}
 {% block content %}
-	<div class="row top-menu">
-		<div class="col-md-1"></div>
-		<div class="col-md-9">
-			<table>
-				<tr>
-					<td style="padding:5px;">
-						<a href="{{url_for('showRestaurants')}}">
-							<span class="glyphicon glyphicon-home" aria-hidden="true"></span> Show All Restaurants
-						</a>
-					</td>
-				</tr>
-			</table>
-		</div>
-		<div class="col-md-2 text-right">
-			<a href="{{url_for('showLogin')}}">Click Here to Log in </a>
-		</div>
-	</div>
+	{% include "header.html" %}
 	<div class="row divider blue">
 		<div class="col-md-12"></div>
 	</div>
@@ -27,17 +11,17 @@
 		</div>
 	</div>
 
-	<div class='flash'>
+	<div class = 'flash'>
 		{% with messages = get_flashed_messages() %}
-		{% if messages %}
+		 {% if messages %}
 
-		<ul>
-			{% for message in messages %}
-			<li><strong> {{ message }} </strong></li>
-			{% endfor %}
-		</ul>
-		{% endif %}
-		{% endwith %}
+		   <ul>
+		   {% for message in messages %}
+			  <li> <strong> {{ message }} </strong> </li>
+		   {% endfor %}
+		   </ul>
+		   {% endif %}
+	    {% endwith %}
 
 	</div>
 

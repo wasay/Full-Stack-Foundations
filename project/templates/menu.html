@@ -1,4 +1,7 @@
 {% extends "main.html" %}
+{% block head %}
+	<title>{{ restaurant.name }} Menu</title>
+{% endblock %}
 {% block content %}
 {% include "header.html" %}
 	<div class="row divider green">
@@ -6,10 +9,10 @@
 	</div>
 	<div class="row banner menu">
 		<div class="col-md-11 col-md-offset-1 padding-none">
-			<h1>{{ restaurant.name }}
+			<h1>{{ restaurant.name }} Menu
 			<figure class="creator">
-				<img src="{{ url_for('static', filename='blank_user.gif') }}">
-				<figcaption>Menu creator's name goes here</figcaption>
+				<img src="{{ url_for('static', filename='wasay_syed.png') }}">
+				<figcaption>{{ creator['name'] }}</figcaption>
 			</figure>
 			</h1>
 

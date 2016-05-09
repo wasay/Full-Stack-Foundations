@@ -5,6 +5,7 @@ from database_setup import Base, Restaurant, MenuItem, User
 
 import httplib2, json, requests, random, string
 import pycurl, urllib, StringIO
+from array import array
 
 from flask import session as login_session
 from oauth2client.client import flow_from_clientsecrets
@@ -73,8 +74,17 @@ session = DBSession()
 @app.route('/')
 @app.route('/restaurants/')
 def showRestaurants():
-    print 'login_session %s' % login_session
+
+
+    # debug login_session
+    #output = ""
+    #output += "<html><body>"
+    #output += 'login_session: %s' % login_session
+    #output += "</body></html>"
+    #return output
+
     restaurants = session.query(Restaurant).order_by(asc(Restaurant.name))
+
     if 'username' not in login_session:
         return render_template('publicrestaurants.html', restaurants=restaurants)
     else:
@@ -103,17 +113,38 @@ def showLogin():
 
 
 @app.route('/logout')
-def showLogout():
+def processLogout():
     getReqState()
     # return "The current session state is %s" % login_session['state']
 
-    amzdisconnect()
+    try:
+        provider = login_session['provider']
+    except NameError:
+        provider = ''
 
-    fbdisconnect()
+    try:
+        user_id = login_session['user_id']
+    except NameError:
+        user_id = ''
 
-    gdisconnect()
+    if provider == 'amazon':
+        amzdisconnect()
 
-    showRestaurants()
+    if provider == 'facebook':
+        fbdisconnect()
+
+    if provider == 'google':
+        gdisconnect()
+
+    # clear session
+    if not provider != '':
+        del login_session['provider']
+
+    if not user_id != '':
+        del login_session['user_id']
+
+    flash('You are logged out!')
+    return redirect(url_for('showRestaurants'))
 
 # ######################################
 # Amazon Authentication
@@ -124,7 +155,8 @@ def showAmzLogin():
     getReqState()
     # return "The current session state is %s" % login_session['state']
 
-    return render_template('amzlogin.html', STATE=login_session['state'], AMZ_CLIENT_ID=AMZ_CLIENT_ID)
+    # return render_template('amzlogin.html', STATE=login_session['state'], AMZ_CLIENT_ID=AMZ_CLIENT_ID)
+    return redirect(url_for('showLogin'))
 
 
 # ######################################
@@ -161,7 +193,7 @@ def amzconnect():
         # the access token does not belong to us
         # raise BaseException("Invalid Token")
         flash("Invalid Token Amazon")
-        return redirect(url_for('showRestaurants'))
+        return redirect(url_for('processLogout'))
 
     # exchange the access token for user profile
     b = StringIO.StringIO()
@@ -220,7 +252,7 @@ def amzdisconnect():
     result = h.request(url, 'DELETE')[1]
 
     flash("You have been logged out from Amazon")
-    return redirect(url_for('showRestaurants'))
+    #return redirect(url_for('showRestaurants'))
 
 
 # ######################################
@@ -230,7 +262,8 @@ def amzdisconnect():
 def showFbLogin():
     getReqState()
     # return "The current session state is %s" % login_session['state']
-    return render_template('fblogin.html', STATE=login_session['state'], FB_APP_ID=FB_APP_ID)
+    # return render_template('fblogin.html', STATE=login_session['state'], FB_APP_ID=FB_APP_ID)
+    return redirect(url_for('showLogin'))
 
 
 # ######################################
@@ -240,20 +273,39 @@ def showFbLogin():
 @app.route('/fbconnect', methods=['POST'])
 def fbconnect():
     if request.args.get('state') != login_session['state']:
-        response = make_response(json.dumps('Invalid state parameter.'), 401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        response = 'Invalid state parameter.'
+        #response = make_response(json.dumps(response), 401)
+        #response.headers['Content-Type'] = 'application/json'
+        flash(response)
+        #return response
+
+        output = 'Invalid state parameter.'
+        flash(output)
+        return ""
+
     access_token = request.data
     print "access token received %s " % access_token
 
-    app_id = json.loads(open('fb_client_secrets.json', 'r').read())[
-        'web']['app_id']
-    app_secret = json.loads(
-        open('fb_client_secrets.json', 'r').read())['web']['app_secret']
-    url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s' % (
-        app_id, app_secret, access_token)
-    h = httplib2.Http()
-    result = h.request(url, 'GET')[1]
+    fb_client_secrets = json.loads(open('instance/fb_client_secrets.json', 'r').read())
+    fb_cs_web = fb_client_secrets['web']
+    app_id = fb_cs_web['app_id']
+    app_secret = fb_cs_web['app_secret']
+
+    if app_secret == '':
+        output = "Unable to gather config through Facebook"
+        flash(output)
+        return ""
+
+    try:
+        url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s' % (
+            app_id, app_secret, access_token)
+        h = httplib2.Http()
+        result = h.request(url, 'GET')[1]
+
+    except:
+        output = "Unable to gather access_token through Facebook"
+        flash(output)
+        return ""
 
     # Use token to get user info from API
     userinfo_url = "https://graph.facebook.com/v2.4/me"
@@ -261,13 +313,28 @@ def fbconnect():
     token = result.split("&")[0]
 
 
-    url = 'https://graph.facebook.com/v2.4/me?%s&fields=name,id,email' % token
-    h = httplib2.Http()
-    result = h.request(url, 'GET')[1]
-    # print "url sent for API access:%s"% url
-    # print "API JSON result: %s" % result
-    data = json.loads(result)
+    try:
+        url = 'https://graph.facebook.com/v2.4/me?%s&fields=name,id,email' % token
+        h = httplib2.Http()
+        result = h.request(url, 'GET')[1]
+
+    except:
+        output = "Unable to gather fields through Facebook"
+        flash(output)
+        return ""
+
+    flash("url sent for API access:%s" % url)
+    flash("API JSON result: %s" % result)
+
     login_session['provider'] = 'facebook'
+
+    try:
+        data = json.loads(result)
+    except:
+        output = "Error: Unable to gather json result through Facebook"
+        flash(output)
+        return ""
+
     login_session['username'] = data["name"]
     login_session['email'] = data["email"]
     login_session['facebook_id'] = data["id"]
@@ -300,7 +367,7 @@ def fbconnect():
     output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
 
     flash("Now logged in as %s in Facebook" % login_session['username'])
-    return redirect(url_for('showRestaurants'))
+    return output
 
 # #########################################################################
 # DISCONNECT - Revoke a current user's token and reset their login_session
@@ -312,15 +379,19 @@ def fbconnect():
 # Route with Method: GET
 @app.route('/fbdisconnect')
 def fbdisconnect():
-    facebook_id = login_session['facebook_id']
-    # The access token must me included to successfully logout
-    access_token = login_session['access_token']
-    url = 'https://graph.facebook.com/%s/permissions?access_token=%s' % (facebook_id,access_token)
-    h = httplib2.Http()
-    result = h.request(url, 'DELETE')[1]
 
-    flash("You have been logged out from Facebook")
-    return redirect(url_for('showRestaurants'))
+    if 'facebook_id' in login_session:
+        facebook_id = login_session['facebook_id']
+        # The access token must me included to successfully logout
+        access_token = login_session['access_token']
+        url = 'https://graph.facebook.com/%s/permissions?access_token=%s' % (facebook_id,access_token)
+        h = httplib2.Http()
+        result = h.request(url, 'DELETE')[1]
+
+        flash("You have been logged out from Facebook")
+    else:
+        flash("Unable to log you out of app through Facebook")
+    #return redirect(url_for('showRestaurants'))
 
 
 # ######################################
@@ -330,7 +401,8 @@ def fbdisconnect():
 def showGLogin():
     getReqState()
     # return "The current session state is %s" % login_session['state']
-    return render_template('glogin.html', STATE=login_session['state'], G_CLIENT_ID=G_CLIENT_ID)
+    # return render_template('glogin.html', STATE=login_session['state'], G_CLIENT_ID=G_CLIENT_ID)
+    return redirect(url_for('showLogin'))
 
 
 # ######################################
@@ -345,7 +417,7 @@ def gconnect():
         # response = make_response(json.dumps(response), 401)
         # response.headers['Content-Type'] = 'application/json'
         flash(response)
-        return redirect(url_for('glogin'))
+        return redirect(url_for('processLogout'))
 
     # Obtain authorization code
     code = request.data
@@ -360,7 +432,7 @@ def gconnect():
         # response = make_response(json.dumps(response), 401)
         # response.headers['Content-Type'] = 'application/json'
         flash(response)
-        return redirect(url_for('glogin'))
+        return redirect(url_for('processLogout'))
 
     # Check that the access token is valid.
     access_token = credentials.access_token
@@ -375,7 +447,7 @@ def gconnect():
         # response = make_response(json.dumps(result.get('error')), 500)
         # response.headers['Content-Type'] = 'application/json'
         flash(response)
-        return redirect(url_for('glogin'))
+        return redirect(url_for('processLogout'))
 
     # Verify that the access token is used for the intended user.
     gplus_id = credentials.id_token['sub']
@@ -384,7 +456,7 @@ def gconnect():
         # response = make_response(json.dumps(response), 401)
         # response.headers['Content-Type'] = 'application/json'
         flash(response)
-        return redirect(url_for('glogin'))
+        return redirect(url_for('processLogout'))
 
     # Verify that the access token is valid for this app.
     if result['issued_to'] != G_CLIENT_ID:
@@ -393,16 +465,20 @@ def gconnect():
         print response
         # response.headers['Content-Type'] = 'application/json'
         flash(response)
-        return redirect(url_for('glogin'))
+        return redirect(url_for('processLogout'))
 
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
+
+    login_session['provider'] = 'google'
+
     if stored_access_token is not None and gplus_id == stored_gplus_id:
         response = 'Current user is already connected.'
         # response = make_response(json.dumps(response), 200)
         # response.headers['Content-Type'] = 'application/json'
         flash(response)
         return redirect(url_for('showRestaurants'))
+    # else new user
 
     # Store the access token in the session for later use.
     login_session['access_token'] = credentials.access_token
@@ -422,7 +498,6 @@ def gconnect():
     user_id = getUserID(data['email'])
     if not user_id:
         newUser = createUser(login_session)
-
     login_session['user_id'] = user_id
 
     output = ''
@@ -432,8 +507,11 @@ def gconnect():
     output += '<img src="'
     output += login_session['picture']
     output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+
     flash("you are now logged in as %s in Google" % login_session['username'])
-    print "done!"
+
+    #print "done!"
+
     return redirect(url_for('showRestaurants'))
 
 # #########################################################################
@@ -456,7 +534,7 @@ def gdisconnect():
         # response = make_response(json.dumps(response), 401)
         # response.headers['Content-Type'] = 'application/json'
         flash(response)
-        return redirect(url_for('glogin'))
+        return redirect(url_for('showLogin'))
 
     url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % login_session['access_token']
     h = httplib2.Http()
@@ -481,7 +559,7 @@ def gdisconnect():
         # response.headers['Content-Type'] = 'application/json'
         flash(response)
 
-    return redirect(url_for('glogin'))
+    #return redirect(url_for('showRestaurants'))
 
 # ######################################
 # JSON APIs to view Restaurant Information
@@ -538,7 +616,7 @@ def newRestaurant():
         session.commit()
         return redirect(url_for('showRestaurants'))
     else:
-        return render_template('newRestaurant.html')
+        return render_template('newRestaurant.html', login_session=login_session)
 
 
 # ######################################
@@ -562,7 +640,7 @@ def editRestaurant(restaurant_id):
             flash('Restaurant Successfully Edited %s' % editedRestaurant.name)
             return redirect(url_for('showRestaurants'))
     else:
-        return render_template('editRestaurant.html', restaurant=editedRestaurant)
+        return render_template('editRestaurant.html', restaurant=editedRestaurant, login_session=login_session)
 
 
 # ######################################
@@ -586,7 +664,7 @@ def deleteRestaurant(restaurant_id):
         session.commit()
         return redirect(url_for('showRestaurants', restaurant_id=restaurant_id))
     else:
-        return render_template('deleteRestaurant.html', restaurant=restaurantToDelete)
+        return render_template('deleteRestaurant.html', restaurant=restaurantToDelete, login_session=login_session)
 
 
 # ######################################
@@ -630,7 +708,7 @@ def newMenuItem(restaurant_id):
         flash('New Menu %s Item Successfully Created' % (newItem.name))
         return redirect(url_for('showMenu', restaurant_id=restaurant_id))
     else:
-        return render_template('newmenuitem.html', restaurant_id=restaurant_id)
+        return render_template('newmenuitem.html', restaurant_id=restaurant_id, login_session=login_session)
 
 
 # ######################################
@@ -663,7 +741,7 @@ def editMenuItem(restaurant_id, menu_id):
         flash('Menu Item Successfully Edited')
         return redirect(url_for('showMenu', restaurant_id=restaurant_id))
     else:
-        return render_template('editmenuitem.html', restaurant_id=restaurant_id, menu_id=menu_id, item=editedItem)
+        return render_template('editmenuitem.html', restaurant_id=restaurant_id, menu_id=menu_id, item=editedItem, login_session=login_session)
 
 
 # ######################################
@@ -688,7 +766,14 @@ def deleteMenuItem(restaurant_id, menu_id):
         flash('Menu Item Successfully Deleted')
         return redirect(url_for('showMenu', restaurant_id=restaurant_id))
     else:
-        return render_template('deleteMenuItem.html', item=itemToDelete)
+        return render_template('deleteMenuItem.html', item=itemToDelete, login_session=login_session)
+
+
+
+@app.route('/webapi')
+def showWebApi():
+    return render_template('webapi.html', login_session=login_session)
+
 
 
 # ######################################

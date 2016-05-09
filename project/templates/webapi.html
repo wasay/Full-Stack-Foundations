@@ -1,0 +1,64 @@
+{% extends "main.html" %}
+{% block content %}
+	{% include "header.html" %}
+
+	<div class="row divider green">
+		<div class="col-md-12"></div>
+	</div>
+
+	<div class="row banner menu">
+		<div class="col-md-11 col-md-offset-1 padding-none">
+			<h1>Web API</h1>
+		</div>
+	</div>
+	<div class="row padding-top padding-bottom">
+		<div class="col-md-1"></div>
+		<div class="col-md-11 padding-none">
+
+		</div>
+		<div class="col-md-7"></div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			{% with messages = get_flashed_messages() %}
+				{% if messages %}
+					<ul>
+						{% for message in messages %}
+							 <li> <strong> {{ message }} </strong> </li>
+						{% endfor %}
+					</ul>
+				{% endif %}
+			{% endwith %}
+		</div>
+	</div>
+
+	<a href = "/restaurants/JSON">
+		<div class="row">
+			<div class="col-md-1"></div>
+				<div class="col-md-10 restaurant-list">
+					<h3>/restaurants/JSON</h3>
+				</div>
+			<div class="col-md-1"></div>
+		</div>
+	</a>
+
+	<a href = "/restaurant/6/menu/JSON">
+		<div class="row">
+			<div class="col-md-1"></div>
+				<div class="col-md-10 restaurant-list">
+					<h3>/restaurant/1/menu/JSON</h3>
+				</div>
+			<div class="col-md-1"></div>
+		</div>
+	</a>
+
+	<a href = "/restaurant/6/menu/1/JSON">
+		<div class="row">
+			<div class="col-md-1"></div>
+				<div class="col-md-10 restaurant-list">
+					<h3>/restaurant/1/menu/1/JSON</h3>
+				</div>
+			<div class="col-md-1"></div>
+		</div>
+	</a>
+{% endblock %}
