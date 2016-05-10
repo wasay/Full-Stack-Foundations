@@ -1,0 +1,17 @@
+Amazon:
+	Web Settings:
+		JS Origins:
+			http://localhost:5000
+		Return URLs:
+			http://localhost:5000/login
+			http://localhost:5000/amzconnect
+
+Facebook:
+	JS Origins:
+	Return URLs:
+
+	ID: 613560093
+
+Google:
+	JS Origins:
+	Return URLs:

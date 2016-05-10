@@ -18,37 +18,6 @@ from flask import make_response
 
 app = Flask(__name__)
 
-# ######################################
-# Get Config settings from config files
-# ######################################
-
-# ######################################
-# Amazon
-# ######################################
-AMZ_CLIENT_SECRETS = json.loads(
-    open('instance/amz_client_secrets.json', 'r').read())['web']
-AMZ_CLIENT_ID = AMZ_CLIENT_SECRETS['client_id']
-AMZ_CLIENT_SECRET = AMZ_CLIENT_SECRETS['client_secret']
-AMZ_APP_ID = AMZ_CLIENT_SECRETS['app_id']
-
-# ######################################
-# Facebook
-# ######################################
-FB_CLIENT_SECRETS = json.loads(
-    open('instance/fb_client_secrets.json', 'r').read())['web']
-FB_CLIENT_ID = FB_CLIENT_SECRETS['app_secret']
-FB_CLIENT_SECRET = FB_CLIENT_SECRETS['app_secret']
-FB_APP_ID = FB_CLIENT_SECRETS['app_id']
-
-# ######################################
-# Google
-# ######################################
-G_CLIENT_SECRETS = json.loads(
-    open('instance/g_client_secrets.json', 'r').read())['web']
-G_CLIENT_ID = G_CLIENT_SECRETS['client_id']
-G_CLIENT_SECRET = G_CLIENT_SECRETS['client_secret']
-G_APP_ID = G_CLIENT_SECRETS['project_id']
-
 
 # ######################################
 # Application Name
@@ -75,18 +44,17 @@ session = DBSession()
 @app.route('/restaurants/')
 def showRestaurants():
 
-
     # debug login_session
-    #output = ""
-    #output += "<html><body>"
-    #output += 'login_session: %s' % login_session
-    #output += "</body></html>"
-    #return output
+    # output = ""
+    # output += "<html><body>"
+    # output += 'login_session: %s' % login_session
+    # output += "</body></html>"
+    # return output
 
     restaurants = session.query(Restaurant).order_by(asc(Restaurant.name))
 
     if 'username' not in login_session:
-        return render_template('publicrestaurants.html', restaurants=restaurants)
+        return render_template('publicrestaurants.html', restaurants=restaurants, login_session=login_session)
     else:
         creator = getUserInfo(login_session['user_id'])
         return render_template('restaurants.html', restaurants=restaurants, creator=creator, login_session=login_session)
@@ -108,204 +76,41 @@ def getReqState():
 @app.route('/login')
 def showLogin():
     getReqState()
+
+    AMZ_CLIENT_ID = json.loads(open('instance/amz_client_secrets.json', 'r').read())[
+        'web']['client_id']
+
+    FB_APP_ID = json.loads(open('instance/fb_client_secrets.json', 'r').read())[
+        'web']['app_id']
+
+    G_CLIENT_ID = json.loads(open('instance/g_client_secrets.json', 'r').read())[
+        'web']['client_id']
+
     # return "The current session state is %s" % login_session['state']
     return render_template('login.html', STATE=login_session['state'], AMZ_CLIENT_ID=AMZ_CLIENT_ID, FB_APP_ID=FB_APP_ID, G_CLIENT_ID=G_CLIENT_ID)
 
 
-@app.route('/logout')
-def processLogout():
-    getReqState()
-    # return "The current session state is %s" % login_session['state']
-
-    try:
-        provider = login_session['provider']
-    except NameError:
-        provider = ''
-
-    try:
-        user_id = login_session['user_id']
-    except NameError:
-        user_id = ''
-
-    if provider == 'amazon':
-        amzdisconnect()
-
-    if provider == 'facebook':
-        fbdisconnect()
-
-    if provider == 'google':
-        gdisconnect()
-
-    # clear session
-    if not provider != '':
-        del login_session['provider']
-
-    if not user_id != '':
-        del login_session['user_id']
-
-    flash('You are logged out!')
-    return redirect(url_for('showRestaurants'))
-
 # ######################################
-# Amazon Authentication
+# FB and Google Authentication
 # ######################################
-
-@app.route('/amzlogin')
-def showAmzLogin():
-    getReqState()
-    # return "The current session state is %s" % login_session['state']
-
-    # return render_template('amzlogin.html', STATE=login_session['state'], AMZ_CLIENT_ID=AMZ_CLIENT_ID)
-    return redirect(url_for('showLogin'))
-
-
-# ######################################
-# Amazon Connect
-# ######################################
-# Route with Method: POST
-@app.route('/amzconnect', methods=['POST'])
-def amzconnect():
-    if request.args.get('state') != login_session['state']:
-        response = 'Invalid state parameter.'
-        # response = make_response(json.dumps(response), 401)
-        # response.headers['Content-Type'] = 'application/json'
-        # return response
-        flash(response)
-        return redirect(url_for('showRestaurants'))
-
-    access_token = request.data
-    print "access token received %s " % access_token
-
-    b = StringIO.StringIO()
-
-    # verify that the access token belongs to us
-    c = pycurl.Curl()
-    c.setopt(pycurl.URL, "https://api.amazon.com/auth/o2/tokeninfo?access_token=" + urllib.quote_plus(access_token))
-    c.setopt(pycurl.SSL_VERIFYPEER, 1)
-    c.setopt(pycurl.WRITEFUNCTION, b.write)
-
-    c.perform()
-    d = json.loads(b.getvalue())
-
-    stored_token = d['aud']
-
-    if d['aud'] != AMZ_CLIENT_ID :
-        # the access token does not belong to us
-        # raise BaseException("Invalid Token")
-        flash("Invalid Token Amazon")
-        return redirect(url_for('processLogout'))
-
-    # exchange the access token for user profile
-    b = StringIO.StringIO()
-
-    c = pycurl.Curl()
-    c.setopt(pycurl.URL, "https://api.amazon.com/user/profile")
-    c.setopt(pycurl.HTTPHEADER, ["Authorization: bearer " + access_token])
-    c.setopt(pycurl.SSL_VERIFYPEER, 1)
-    c.setopt(pycurl.WRITEFUNCTION, b.write)
-
-    c.perform()
-    data = json.loads(b.getvalue())
-
-    login_session['provider'] = 'amazon'
-    login_session['username'] = data["name"]
-    login_session['email'] = data["email"]
-    login_session['amazon_id'] = data["user_id"]
-
-    login_session['access_token'] = stored_token
-
-    login_session['picture'] = ''
-
-    # see if user exists
-    user_id = getUserID(login_session['email'])
-    if not user_id:
-        user_id = createUser(login_session)
-    login_session['user_id'] = user_id
-
-    output = ''
-    output += '<h1>Welcome, '
-    output += login_session['username']
-
-    output += '!</h1>'
-    output += '<img src="'
-    output += login_session['picture']
-    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
-
-    flash("Now logged in as %s in Amazon" % login_session['username'])
-    return redirect(url_for('showRestaurants'))
-
-# #########################################################################
-# DISCONNECT - Revoke a current user's token and reset their login_session
-# #########################################################################
-
-# ######################################
-# Amazon Disconnect
-# ######################################
-# Route with Method: GET
-@app.route('/amzdisconnect')
-def amzdisconnect():
-    amazon_id = login_session['amazon_id']
-    # The access token must me included to successfully logout
-    access_token = login_session['access_token']
-    url = 'https://api.amazon.com/auth/o2/tokeninfo?access_token=%s' % (amazon_id,access_token)
-    h = httplib2.Http()
-    result = h.request(url, 'DELETE')[1]
-
-    flash("You have been logged out from Amazon")
-    #return redirect(url_for('showRestaurants'))
-
-
-# ######################################
-# Facebook Authentication
-# ######################################
-@app.route('/fblogin')
-def showFbLogin():
-    getReqState()
-    # return "The current session state is %s" % login_session['state']
-    # return render_template('fblogin.html', STATE=login_session['state'], FB_APP_ID=FB_APP_ID)
-    return redirect(url_for('showLogin'))
-
-
-# ######################################
-# Facebook Connect
-# ######################################
-# Route with Method: POST
 @app.route('/fbconnect', methods=['POST'])
 def fbconnect():
     if request.args.get('state') != login_session['state']:
-        response = 'Invalid state parameter.'
-        #response = make_response(json.dumps(response), 401)
-        #response.headers['Content-Type'] = 'application/json'
-        flash(response)
-        #return response
-
-        output = 'Invalid state parameter.'
-        flash(output)
-        return ""
-
+        response = make_response(json.dumps('Invalid state parameter.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
     access_token = request.data
     print "access token received %s " % access_token
 
-    fb_client_secrets = json.loads(open('instance/fb_client_secrets.json', 'r').read())
-    fb_cs_web = fb_client_secrets['web']
-    app_id = fb_cs_web['app_id']
-    app_secret = fb_cs_web['app_secret']
+    app_id = json.loads(open('instance/fb_client_secrets.json', 'r').read())[
+        'web']['app_id']
+    app_secret = json.loads(
+        open('instance/fb_client_secrets.json', 'r').read())['web']['app_secret']
 
-    if app_secret == '':
-        output = "Unable to gather config through Facebook"
-        flash(output)
-        return ""
-
-    try:
-        url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s' % (
-            app_id, app_secret, access_token)
-        h = httplib2.Http()
-        result = h.request(url, 'GET')[1]
-
-    except:
-        output = "Unable to gather access_token through Facebook"
-        flash(output)
-        return ""
+    url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s' % (
+        app_id, app_secret, access_token)
+    h = httplib2.Http()
+    result = h.request(url, 'GET')[1]
 
     # Use token to get user info from API
     userinfo_url = "https://graph.facebook.com/v2.4/me"
@@ -313,27 +118,19 @@ def fbconnect():
     token = result.split("&")[0]
 
 
-    try:
-        url = 'https://graph.facebook.com/v2.4/me?%s&fields=name,id,email' % token
-        h = httplib2.Http()
-        result = h.request(url, 'GET')[1]
+    url = 'https://graph.facebook.com/v2.4/me?%s&fields=name,id,email' % token
+    h = httplib2.Http()
+    result = h.request(url, 'GET')[1]
+    # print "url sent for API access:%s"% url
+    # print "API JSON result: %s" % result
 
-    except:
-        output = "Unable to gather fields through Facebook"
-        flash(output)
-        return ""
+    # if error is
+    # API calls from the server require an appsecret_proof argument
+    # http://stackoverflow.com/questions/22359611/api-calls-from-the-server-require-an-appsecret-proof-argument
 
-    flash("url sent for API access:%s" % url)
-    flash("API JSON result: %s" % result)
+    data = json.loads(result)
 
     login_session['provider'] = 'facebook'
-
-    try:
-        data = json.loads(result)
-    except:
-        output = "Error: Unable to gather json result through Facebook"
-        flash(output)
-        return ""
 
     login_session['username'] = data["name"]
     login_session['email'] = data["email"]
@@ -366,73 +163,44 @@ def fbconnect():
     output += login_session['picture']
     output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
 
-    flash("Now logged in as %s in Facebook" % login_session['username'])
+    flash("Now logged in as %s" % login_session['username'])
     return output
 
-# #########################################################################
-# DISCONNECT - Revoke a current user's token and reset their login_session
-# #########################################################################
 
-# ######################################
-# Facebook Disconnect
-# ######################################
-# Route with Method: GET
 @app.route('/fbdisconnect')
 def fbdisconnect():
-
-    if 'facebook_id' in login_session:
-        facebook_id = login_session['facebook_id']
-        # The access token must me included to successfully logout
-        access_token = login_session['access_token']
-        url = 'https://graph.facebook.com/%s/permissions?access_token=%s' % (facebook_id,access_token)
-        h = httplib2.Http()
-        result = h.request(url, 'DELETE')[1]
-
-        flash("You have been logged out from Facebook")
-    else:
-        flash("Unable to log you out of app through Facebook")
-    #return redirect(url_for('showRestaurants'))
+    facebook_id = login_session['facebook_id']
+    # The access token must me included to successfully logout
+    access_token = login_session['access_token']
+    url = 'https://graph.facebook.com/%s/permissions?access_token=%s' % (facebook_id,access_token)
+    h = httplib2.Http()
+    result = h.request(url, 'DELETE')[1]
+    return "you have been logged out"
 
 
-# ######################################
-# Google Authentication
-# ######################################
-@app.route('/glogin')
-def showGLogin():
-    getReqState()
-    # return "The current session state is %s" % login_session['state']
-    # return render_template('glogin.html', STATE=login_session['state'], G_CLIENT_ID=G_CLIENT_ID)
-    return redirect(url_for('showLogin'))
-
-
-# ######################################
-# Google Connect
-# ######################################
-# Route with Method: POST
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
     # Validate state token
     if request.args.get('state') != login_session['state']:
-        response = 'Invalid state parameter.'
-        # response = make_response(json.dumps(response), 401)
-        # response.headers['Content-Type'] = 'application/json'
-        flash(response)
-        return redirect(url_for('processLogout'))
-
+        response = make_response(json.dumps('Invalid state parameter.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
     # Obtain authorization code
     code = request.data
 
     try:
+        G_CLIENT_ID = json.loads(open('instance/g_client_secrets.json', 'r').read())[
+            'web']['client_id']
+
         # Upgrade the authorization code into a credentials object
         oauth_flow = flow_from_clientsecrets('instance/g_client_secrets.json', scope='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
     except FlowExchangeError:
-        response = 'Failed to upgrade the authorization code.'
-        # response = make_response(json.dumps(response), 401)
-        # response.headers['Content-Type'] = 'application/json'
-        flash(response)
-        return redirect(url_for('processLogout'))
+        response = make_response(
+            json.dumps('Failed to upgrade the authorization code.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
     # Check that the access token is valid.
     access_token = credentials.access_token
@@ -440,45 +208,37 @@ def gconnect():
            % access_token)
     h = httplib2.Http()
     result = json.loads(h.request(url, 'GET')[1])
-
     # If there was an error in the access token info, abort.
     if result.get('error') is not None:
-        response = result.get('error')
-        # response = make_response(json.dumps(result.get('error')), 500)
-        # response.headers['Content-Type'] = 'application/json'
-        flash(response)
-        return redirect(url_for('processLogout'))
+        response = make_response(json.dumps(result.get('error')), 500)
+        response.headers['Content-Type'] = 'application/json'
 
     # Verify that the access token is used for the intended user.
     gplus_id = credentials.id_token['sub']
     if result['user_id'] != gplus_id:
-        response = "Token's user ID doesn't match given user ID."
-        # response = make_response(json.dumps(response), 401)
-        # response.headers['Content-Type'] = 'application/json'
-        flash(response)
-        return redirect(url_for('processLogout'))
+        response = make_response(
+            json.dumps("Token's user ID doesn't match given user ID."), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
+
+
 
     # Verify that the access token is valid for this app.
     if result['issued_to'] != G_CLIENT_ID:
-        response = "Token's client ID does not match app's."
-        # response = make_response(json.dumps(response), 401)
-        print response
-        # response.headers['Content-Type'] = 'application/json'
-        flash(response)
-        return redirect(url_for('processLogout'))
+        response = make_response(
+            json.dumps("Token's client ID does not match app's."), 401)
+        print "Token's client ID does not match app's."
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
-    stored_access_token = login_session.get('access_token')
+    stored_credentials = login_session.get('credentials')
     stored_gplus_id = login_session.get('gplus_id')
-
-    login_session['provider'] = 'google'
-
-    if stored_access_token is not None and gplus_id == stored_gplus_id:
-        response = 'Current user is already connected.'
-        # response = make_response(json.dumps(response), 200)
-        # response.headers['Content-Type'] = 'application/json'
-        flash(response)
-        return redirect(url_for('showRestaurants'))
-    # else new user
+    if stored_credentials is not None and gplus_id == stored_gplus_id:
+        response = make_response(json.dumps('Current user is already connected.'),
+                                 200)
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
     # Store the access token in the session for later use.
     login_session['access_token'] = credentials.access_token
@@ -494,10 +254,13 @@ def gconnect():
     login_session['username'] = data['name']
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
+    # ADD PROVIDER TO LOGIN SESSION
+    login_session['provider'] = 'google'
 
-    user_id = getUserID(data['email'])
+    # see if user exists, if it doesn't make a new one
+    user_id = getUserID(data["email"])
     if not user_id:
-        newUser = createUser(login_session)
+        user_id = createUser(login_session)
     login_session['user_id'] = user_id
 
     output = ''
@@ -507,59 +270,162 @@ def gconnect():
     output += '<img src="'
     output += login_session['picture']
     output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+    flash("you are now logged in as %s" % login_session['username'])
+    print "done!"
+    return output
 
-    flash("you are now logged in as %s in Google" % login_session['username'])
 
-    #print "done!"
+@app.route('/gdisconnect')
+def gdisconnect():
+    # Only disconnect a connected user.
+    credentials = login_session.get('credentials')
+    if credentials is None:
+        response = make_response(
+            json.dumps('Current user not connected.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    access_token = credentials.access_token
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
+    h = httplib2.Http()
+    result = h.request(url, 'GET')[0]
+    if result['status'] != '200':
+        # For whatever reason, the given token was invalid.
+        response = make_response(
+            json.dumps('Failed to revoke token for given user.', 400))
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
-    return redirect(url_for('showRestaurants'))
+
+# ######################################
+# Amazon Connect
+# ######################################
+# Route with Method: POST
+@app.route('/amzconnect', methods=['GET', 'POST'])
+def amzconnect():
+    if request.args.get('state') != login_session['state']:
+        response = 'Invalid state parameter.'
+        response = make_response(json.dumps(response), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
+    access_token = request.data
+
+    app_id = json.loads(open('instance/amz_client_secrets.json', 'r').read())[
+        'web']['app_id']
+    client_id = json.loads(open('instance/amz_client_secrets.json', 'r').read())[
+        'web']['client_id']
+    client_secret = json.loads(
+        open('instance/amz_client_secrets.json', 'r').read())['web']['client_secret']
+
+    b = StringIO.StringIO()
+
+    # verify that the access token belongs to us
+    c = pycurl.Curl()
+    c.setopt(pycurl.URL, "https://api.amazon.com/auth/o2/tokeninfo?access_token=" + urllib.quote_plus(access_token))
+    c.setopt(pycurl.SSL_VERIFYPEER, 0)
+    c.setopt(pycurl.WRITEFUNCTION, b.write)
+
+    c.perform()
+    d = json.loads(b.getvalue())
+
+    if d['aud'] != client_id :
+        # the access token does not belong to us
+        raise BaseException("Invalid Token")
+
+    stored_token = d['aud']
+
+    # exchange the access token for user profile
+    b = StringIO.StringIO()
+
+    c = pycurl.Curl()
+    c.setopt(pycurl.URL, "https://api.amazon.com/user/profile")
+    c.setopt(pycurl.HTTPHEADER, ["Authorization: bearer " + access_token])
+    c.setopt(pycurl.SSL_VERIFYPEER, 0)
+    c.setopt(pycurl.WRITEFUNCTION, b.write)
+
+    c.perform()
+    data = json.loads(b.getvalue())
+
+    login_session['provider'] = 'amazon'
+    login_session['username'] = data['name']
+    login_session['email'] = data['email']
+    login_session['amazon_id'] = data['user_id']
+
+    login_session['access_token'] = stored_token
+
+    login_session['picture'] = ''
+
+    # see if user exists
+    user_id = getUserID(login_session['email'])
+    if not user_id:
+        user_id = createUser(login_session)
+    login_session['user_id'] = user_id
+
+    output = ''
+    output += '<h1>Welcome, '
+    output += login_session['username']
+    output += '!</h1>'
+    output += '<img src="'
+    output += login_session['picture']
+    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+    flash("you are now logged in as %s" % login_session['username'])
+    print "done!"
+    return output
+
 
 # #########################################################################
 # DISCONNECT - Revoke a current user's token and reset their login_session
 # #########################################################################
 
 # ######################################
-# Google Disconnect
+# Amazon Disconnect
 # ######################################
 # Route with Method: GET
-@app.route('/gdisconnect')
-def gdisconnect():
+@app.route('/amzdisconnect')
+def amzdisconnect():
+    amazon_id = login_session['amazon_id']
+    # The access token must me included to successfully logout
     access_token = login_session['access_token']
-    print 'In gdisconnect access token is %s', access_token
-    print 'User name is: '
-    print login_session['username']
-    if access_token is None:
-        print 'Access Token is None'
-        response = 'Current user not connected.'
-        # response = make_response(json.dumps(response), 401)
-        # response.headers['Content-Type'] = 'application/json'
-        flash(response)
-        return redirect(url_for('showLogin'))
-
-    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % login_session['access_token']
+    url = 'https://api.amazon.com/auth/o2/tokeninfo?access_token=%s' % (access_token)
     h = httplib2.Http()
-    result = h.request(url, 'GET')[0]
-    print 'result is '
-    print result
+    result = h.request(url, 'DELETE')[1]
 
-    if result['status'] == '200':
-        del login_session['access_token']
-        del login_session['gplus_id']
+
+
+
+# ######################################
+# Disconnect
+# ######################################
+# Route with Method: GET
+@app.route('/disconnect')
+def disconnect():
+    if 'provider' in login_session:
+        if login_session['provider'] == 'google':
+            gdisconnect()
+            del login_session['gplus_id']
+            # del login_session['credentials']
+
+        if login_session['provider'] == 'facebook':
+            fbdisconnect()
+            del login_session['facebook_id']
+
+        if login_session['provider'] == 'amazon':
+            amzdisconnect()
+            del login_session['amazon_id']
+
         del login_session['username']
         del login_session['email']
         del login_session['picture']
+        del login_session['user_id']
+        del login_session['provider']
 
-        response = 'Successfully disconnected from Google Plus.'
-        # response = make_response(json.dumps(response), 200)
-        # response.headers['Content-Type'] = 'application/json'
-        flash(response)
+        flash("You have successfully been logged out.")
+
     else:
-        response = 'Failed to revoke token for given user.'
-        # response = make_response(json.dumps(response, 400))
-        # response.headers['Content-Type'] = 'application/json'
-        flash(response)
+        flash("You were not logged in to begin with!")
 
-    #return redirect(url_for('showRestaurants'))
+    return redirect(url_for('showRestaurants'))
+
 
 # ######################################
 # JSON APIs to view Restaurant Information
@@ -680,8 +546,8 @@ def showMenu(restaurant_id):
 
     items = session.query(MenuItem).filter_by(
         restaurant_id=restaurant_id).all()
-    if 'username' not in login_session or creator is None:
-        return render_template('publicmenu.html', items=items, restaurant=restaurant)
+    if 'username' not in login_session or creator.id != login_session['user_id']:
+        return render_template('publicmenu.html', items=items, restaurant=restaurant, creator=creator, login_session=login_session)
     else:
         return render_template('menu.html', items=items, restaurant=restaurant, creator=creator, login_session=login_session)
 
